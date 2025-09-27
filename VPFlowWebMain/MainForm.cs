@@ -1,7 +1,9 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
+using Newtonsoft.Json;
 using ScriptPortal.Vegas;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -24,9 +26,10 @@ namespace VPFlowWebMain
                 Dock = DockStyle.Fill,
             };
 
-            Controls.Add(webVPFlow);
+            groupBox1.Controls.Add(webVPFlow);
 
-            // Fire-and-forget initialization (it's safe for UI init). Use ConfigureAwait(false) when appropriate.
+            // Fire-and-forget initialization (it's safe for UI init)
+            // Use ConfigureAwait(false) when appropriate
             _ = InitializeWebViewAsync();
         }
 
@@ -79,11 +82,15 @@ namespace VPFlowWebMain
                 {
                     // EnsureCoreWebView2Async must be called on UI thread
                     await webVPFlow.EnsureCoreWebView2Async(env);
+
+                    // handle messages
+                    webVPFlow.WebMessageReceived += WebVPFlow_WebMessageReceived;
+
                     webVPFlow.CoreWebView2.Navigate("http://localhost:5173/");
                     return;
                 }
 
-                // No runtime found — fallback
+                // No runtime found
                 MessageBox.Show(
                     "WebView2 runtime not found",
                     "WebView2 missing",
@@ -106,6 +113,44 @@ namespace VPFlowWebMain
             {
                 MessageBox.Show("WebView2 initialization failed: " + ex.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void WebVPFlow_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            try
+            {
+                string raw = e.WebMessageAsJson;
+                var msg = JsonConvert.DeserializeObject<Dictionary<string, object>>(raw);
+                MessageBox.Show("- raw:" + raw + "\n- msg:" + JsonConvert.SerializeObject(msg));
+
+                if (msg != null && msg.ContainsKey("sender"))
+                {
+                    string msgSender = msg["sender"].ToString();
+                    switch (msgSender)
+                    {
+                        case "btnApply":
+                            // handle button pressed in web UI
+                            // Example: call your ApplyAndCreateKeyframes or update UI
+                            this.Invoke((Action)(() => { /* UI thread work */ }));
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Web message handling error: " + ex.Message);
+            }
+        }
+
+        private async void Button_Click(object sender, EventArgs e)
+        {
+            await SomeWinFormsEventAsync();
+        }
+
+        private async Task SomeWinFormsEventAsync()
+        {
+            // update web ui with data
+            await webVPFlow.receiveFromHost(new[] { "A", "B", "C" });
         }
     }
 }

@@ -411,5 +411,10 @@ declare global {
     chrome: {
       webview: WebView;
     };
+    // WinForms side methods
+    receiveFromHost(
+      /** JSON object */
+      data: string
+    ): void;
   }
 }
