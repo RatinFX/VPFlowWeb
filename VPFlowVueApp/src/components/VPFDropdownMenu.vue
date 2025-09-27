@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, type PropType } from "vue";
+import { ref, watch, type PropType } from "vue";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,7 +16,18 @@ const props = defineProps({
   },
 });
 
-const selectedItem = ref(props.items?.[0] ?? "NO_ITEMS");
+const selectedItem = ref(getDefaultItem(props.items));
+
+function getDefaultItem(list: string[]) {
+  return list?.[0] ?? "NO_ITEMS";
+}
+
+watch(
+  () => props.items,
+  (newItems) => {
+    selectedItem.value = getDefaultItem(newItems);
+  }
+);
 </script>
 
 <template>
