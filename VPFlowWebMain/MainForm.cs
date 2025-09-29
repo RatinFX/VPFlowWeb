@@ -3,7 +3,7 @@ using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
 using ScriptPortal.Vegas;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -16,9 +16,13 @@ namespace VPFlowWebMain
         private readonly Vegas _vegas;
         private WebView2 webVPFlow;
 
+        public static MainForm Instance { get; set; }
+
         public MainForm(Vegas myVegas)
         {
+            Instance = this;
             _vegas = myVegas;
+
             InitializeComponent();
 
             webVPFlow = new WebView2
@@ -26,7 +30,7 @@ namespace VPFlowWebMain
                 Dock = DockStyle.Fill,
             };
 
-            groupBox1.Controls.Add(webVPFlow);
+            gbxWebView.Controls.Add(webVPFlow);
 
             // Fire-and-forget initialization (it's safe for UI init)
             // Use ConfigureAwait(false) when appropriate
@@ -104,41 +108,57 @@ namespace VPFlowWebMain
             catch (UnauthorizedAccessException uaEx)
             {
                 MessageBox.Show("WebView2 initialization failed: access denied.\nEnsure the user-data folder is writable.\nDetails: " + uaEx.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Error("WebView2 initialization failed: access denied.\nEnsure the user-data folder is writable.\nDetails: " + uaEx.Message);
             }
             catch (DllNotFoundException dllEx)
             {
                 MessageBox.Show("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64.\nDetails: " + dllEx.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Error("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64.\nDetails: " + dllEx.Message);
             }
             catch (Exception ex)
             {
                 MessageBox.Show("WebView2 initialization failed: " + ex.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Error("WebView2 initialization failed: " + ex.Message);
             }
+        }
+
+        internal WebMessage<T> ProcessMessage<T>(string messageJson)
+            where T : BasePayload
+        {
+            Log("> messageJson: " + messageJson);
+
+            var ogWebMessage = JsonConvert.DeserializeObject<WebMessage>(messageJson);
+            if (ogWebMessage == null)
+            {
+                //MessageBox.Show("Web message handling error: invalid message format\n- " + messageJson);
+                Error("(!) Web message handling error: invalid message format\n- " + messageJson);
+                return null;
+            }
+
+            var senderConvertionSuccess = Enum.TryParse(ogWebMessage.Sender, true, out SenderType sender);
+            if (!senderConvertionSuccess)
+            {
+                //MessageBox.Show("Web message handling error: unknown sender\n- " + ogWebMessage.Sender);
+                Error("(!) Web message handling error: unknown sender\n- " + ogWebMessage.Sender);
+                return null;
+            }
+
+            return new WebMessage<T>(sender, ogWebMessage.Payload);
         }
 
         private void WebVPFlow_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             try
             {
-                string raw = e.WebMessageAsJson;
-                var msg = JsonConvert.DeserializeObject<Dictionary<string, object>>(raw);
-                MessageBox.Show("- raw:" + raw + "\n- msg:" + JsonConvert.SerializeObject(msg));
+                var webMessage = ProcessMessage<ApplyPayload>(e.WebMessageAsJson);
+                Log($"Processed message ({webMessage.Sender}):\n- " + JsonConvert.SerializeObject(webMessage));
 
-                if (msg != null && msg.ContainsKey("sender"))
-                {
-                    string msgSender = msg["sender"].ToString();
-                    switch (msgSender)
-                    {
-                        case "btnApply":
-                            // handle button pressed in web UI
-                            // Example: call your ApplyAndCreateKeyframes or update UI
-                            this.Invoke((Action)(() => { /* UI thread work */ }));
-                            break;
-                    }
-                }
+                // TODO: handle message
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Web message handling error: " + ex.Message);
+                //MessageBox.Show("Web message handling error: " + ex.Message);
+                Error("Web message handling error: " + ex.Message);
             }
         }
 
@@ -151,6 +171,33 @@ namespace VPFlowWebMain
         {
             // update web ui with data
             await webVPFlow.receiveFromHost(new[] { "A", "B", "C" });
+        }
+
+        public void Log(string text)
+        {
+            Debug.WriteLine(text);
+            this.Invoke((Action)(() =>
+            {
+                tbxLog.AppendText("- " + text + " \r\n");
+            }));
+        }
+
+        public void Warn(string text)
+        {
+            Debug.WriteLine(text);
+            this.Invoke((Action)(() =>
+            {
+                tbxLog.AppendText("[!] " + text + " \r\n");
+            }));
+        }
+
+        public void Error(string text)
+        {
+            Debug.WriteLine(text);
+            this.Invoke((Action)(() =>
+            {
+                tbxLog.AppendText("[ERROR] " + text + " \r\n");
+            }));
         }
     }
 }

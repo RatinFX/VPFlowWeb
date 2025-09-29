@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/menubar";
 import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
 import type { Menu } from "@/models/Menu";
+import { log } from "@/store";
 
 const menus: Menu[] = [
   {
@@ -57,34 +58,34 @@ const menus: Menu[] = [
 ];
 
 function checkForUpdatesOnStartToggle(state: boolean) {
-  console.log("check for updates on start toggle click", state);
+  log("check for updates on start toggle click", state);
 }
 
 function ignoreLongSectionWarningToggle(state: boolean) {
-  console.log("ignore long section warning toggle click", state);
+  log("ignore long section warning toggle click", state);
 }
 
 function onlyCreateNecessaryKeyframesToggle(state: boolean) {
-  console.log("only create necessary Keyframes toggle click", state);
+  log("only create necessary Keyframes toggle click", state);
 }
 
 function preferencesOnClick() {
-  console.log("Preferences item click");
+  log("Preferences item click");
   alert("Settings modal");
 }
 
 function creatorOnClick() {
-  console.log("Creator menu click");
+  log("Creator menu click");
   alert("Creator modal");
 }
 
 function checkForUpdate() {
-  console.log("Check for update item click");
+  log("Check for update item click");
   alert("Check for update result");
 }
 
 function aboutOnClick() {
-  console.log("About item click");
+  log("About item click");
   alert("About modal");
 }
 </script>
