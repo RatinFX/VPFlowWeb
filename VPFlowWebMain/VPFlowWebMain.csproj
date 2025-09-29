@@ -8,6 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>VPFlowWebMain</RootNamespace>
     <AssemblyName>VPFlowWebMain</AssemblyName>
+	  <LangVersion>8</LangVersion>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -53,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="WebMessage.cs" />
     <Compile Include="WebView2Extensions.cs" />
     <Compile Include="FlowDockableControl.cs">
       <SubType>UserControl</SubType>
