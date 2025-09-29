@@ -4,7 +4,7 @@ import Button from "./components/ui/button/Button.vue";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
 import Textarea from "./components/ui/textarea/Textarea.vue";
-import store, { log } from "./store";
+import store, { log, warn } from "./store";
 
 const items = ref(["Event", "Track"]);
 
@@ -78,7 +78,7 @@ function sendButtonClick() {
     window.chrome.webview.postMessage(payload);
     log("sent message with payload:", payload);
   } else {
-    console.warn("no webview.postMessage available");
+    warn("no webview.postMessage available for payload:", payload);
   }
 }
 </script>
