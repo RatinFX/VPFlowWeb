@@ -412,7 +412,7 @@ declare global {
       webview: WebView;
     };
     // WinForms side methods
-    receiveFromHost(
+    ReceiveFromHost(
       /** JSON object */
       data: string
     ): void;

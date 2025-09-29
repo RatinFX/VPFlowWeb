@@ -170,7 +170,7 @@ namespace VPFlowWebMain
         private async Task SomeWinFormsEventAsync()
         {
             // update web ui with data
-            await webVPFlow.receiveFromHost(new[] { "A", "B", "C" });
+            await webVPFlow.ReceiveFromHost(new[] { "A", "B", "C" });
         }
 
         public void Log(string text)

@@ -52,9 +52,9 @@ watch(store.logs, () => {
 
 onMounted(() => {
   // Recieve data
-  window.receiveFromHost = (data) => {
+  window.ReceiveFromHost = (data) => {
     const parsed = JSON.parse(data) as string[];
-    log("receiveFromHost", parsed);
+    log("ReceiveFromHost", parsed);
 
     items.value = parsed;
   };
