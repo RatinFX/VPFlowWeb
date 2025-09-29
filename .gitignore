@@ -460,3 +460,6 @@ FodyWeavers.xsd
 # Vegas Pro
 Sony.Vegas.dll
 ScriptPortal.Vegas.dll
+
+# own
+todo.md
