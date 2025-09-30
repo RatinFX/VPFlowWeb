@@ -1,53 +1,15 @@
 <script setup lang="ts">
 import VPFMenuBar from "./components/VPFMenuBar.vue";
 import Button from "./components/ui/button/Button.vue";
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
-import Textarea from "./components/ui/textarea/Textarea.vue";
-import store, { log, warn } from "./store";
+import { log, warn } from "./store";
+import LoggingTextarea from "./components/LoggingTextarea.vue";
 
 const items = ref(["Event", "Track"]);
 
 const itemsDisplayed = computed(() => {
   return items.value;
-});
-
-const textareaRef = ref<any>(null);
-
-function scrollLogsToBottom() {
-  nextTick(() => {
-    const comp = textareaRef.value;
-    if (!comp) return;
-
-    // component root element (script-setup SFC root) should be available as $el
-    let rootEl: HTMLElement | null = null;
-    if (comp.$el instanceof HTMLElement) {
-      rootEl = comp.$el;
-    } else if (comp instanceof HTMLElement) {
-      rootEl = comp;
-    }
-
-    const textarea: HTMLTextAreaElement | null =
-      (rootEl && rootEl.tagName === "TEXTAREA"
-        ? (rootEl as HTMLTextAreaElement)
-        : null) ||
-      (rootEl &&
-        (rootEl.querySelector(
-          '[data-slot="textarea"]'
-        ) as HTMLTextAreaElement | null)) ||
-      (document.querySelector(
-        '[data-slot="textarea"]'
-      ) as HTMLTextAreaElement | null);
-
-    if (textarea) {
-      textarea.scrollTop = textarea.scrollHeight;
-    }
-  });
-}
-
-watch(store.logs, () => {
-  console.log("[store.logs changed - scrollLogsToBottom()]");
-  scrollLogsToBottom();
 });
 
 onMounted(() => {
@@ -102,13 +64,7 @@ function sendButtonClick() {
     </main>
 
     <div class="w-full h-30 grid gap-1">
-      <Textarea
-        ref="textareaRef"
-        v-model="store.logs.value"
-        id="logs"
-        class="border-sky-500 border-2"
-        style="font-size: 12px"
-      />
+      <LoggingTextarea />
     </div>
   </div>
 </template>
