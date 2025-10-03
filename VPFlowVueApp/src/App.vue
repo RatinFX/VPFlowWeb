@@ -5,8 +5,9 @@ import { computed, onMounted, ref } from "vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
 import SplitContainer from "./components/SplitContainer.vue";
-import { log, warn } from "./lib/logging";
+import { log } from "./lib/logging";
 import CanvasArea from "./components/CanvasArea.vue";
+import messaging from "./lib/messaging";
 
 const items = ref(["Event", "Track"]);
 
@@ -16,35 +17,13 @@ const itemsDisplayed = computed(() => {
 
 onMounted(() => {
   // Recieve data
-  window.ReceiveFromHost = (data: string) => {
+  messaging.setRecieveFromHost((data: string) => {
     const parsed = JSON.parse(data) as string[];
     log("ReceiveFromHost", parsed);
 
     items.value = parsed;
-  };
+  });
 });
-
-interface WebMessage {
-  sender: string;
-  payload: object;
-}
-
-// Send data
-function sendButtonClick() {
-  const payload: WebMessage = {
-    sender: "btnApply",
-    payload: {
-      coordinates: [0.7, 0.27, 0.5, 1.0],
-    },
-  };
-
-  if (window.chrome?.webview?.postMessage) {
-    window.chrome.webview.postMessage(payload);
-    log("sent message with payload:", payload);
-  } else {
-    warn("no webview.postMessage available for payload:", payload);
-  }
-}
 </script>
 
 <template>
@@ -68,7 +47,7 @@ function sendButtonClick() {
             <!-- TODO: change into a toggle icon -->
             <VPFDropdownMenu :items="itemsDisplayed" />
 
-            <Button @click="sendButtonClick">Apply</Button>
+            <Button @click="messaging.sendButtonClick">Apply</Button>
           </div>
         </template>
 
