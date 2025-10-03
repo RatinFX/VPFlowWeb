@@ -1,26 +1,31 @@
 <script setup lang="ts">
 import { log } from "@/store";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, nextTick } from "vue";
 
-// percentage (0-100)
+const DEFAULT_SPLIT = 50;
+/** Percentage (0-100) */
 const split = ref<number>(loadSplit());
 const containerRef = ref<HTMLElement | null>(null);
-const isLandscape = ref(window.innerWidth > window.innerHeight);
+/** Orientation is derived from the current container size, not the window */
+const isLandscape = ref(false);
+
 let dragging = false;
+let ro: ResizeObserver | null = null;
 
 function loadSplit(): number {
   try {
     const raw = localStorage.getItem("vpflow.splitPercent");
-    const value = raw ? parseFloat(raw) : 50;
-    return isFinite(value) ? clamp(value, 5, 95) : 50;
+    const value = raw ? parseFloat(raw) : DEFAULT_SPLIT;
+    log("Loading [vpflow.splitPercent]:", value);
+    return isFinite(value) ? clamp(value, 5, 95) : DEFAULT_SPLIT;
   } catch {
-    return 50;
+    return DEFAULT_SPLIT;
   }
 }
 
 function saveSplit() {
   try {
-    log("Save split.value:", split.value);
+    log("Save [vpflow.splitPercent]:", split.value);
     localStorage.setItem("vpflow.splitPercent", String(split.value));
   } catch {}
 }
@@ -29,8 +34,12 @@ function clamp(v: number, a = 0, b = 100) {
   return Math.min(b, Math.max(a, v));
 }
 
-function updateOrientation() {
-  isLandscape.value = window.innerWidth > window.innerHeight;
+function updateOrientationFromContainer() {
+  if (!containerRef.value) return;
+  const rect = containerRef.value.getBoundingClientRect();
+  isLandscape.value = rect.width > rect.height;
+  // ensure split stays valid when dimensions change
+  split.value = clamp(split.value, 5, 95);
 }
 
 function startDrag(ev: PointerEvent) {
@@ -46,7 +55,7 @@ function startDrag(ev: PointerEvent) {
 function onPointerMove(ev: PointerEvent) {
   if (!dragging || !containerRef.value) return;
   const rect = containerRef.value.getBoundingClientRect();
-  let percent = 50;
+  let percent = DEFAULT_SPLIT;
   if (isLandscape.value) {
     const x = ev.clientX - rect.left;
     percent = (x / rect.width) * 100;
@@ -64,16 +73,26 @@ function stopDrag(_: PointerEvent) {
   saveSplit();
 }
 
-function handleResize() {
-  updateOrientation();
-}
+onMounted(async () => {
+  // wait for DOM, then observe container size changes
+  await nextTick();
 
-onMounted(() => {
-  window.addEventListener("resize", handleResize);
+  if (containerRef.value) {
+    // set initial orientation based on actual available space
+    updateOrientationFromContainer();
+
+    ro = new ResizeObserver(() => {
+      updateOrientationFromContainer();
+    });
+    ro.observe(containerRef.value);
+  }
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", handleResize);
+  if (ro) {
+    ro.disconnect();
+    ro = null;
+  }
   window.removeEventListener("pointermove", onPointerMove);
   window.removeEventListener("pointerup", stopDrag);
 });
@@ -108,27 +127,29 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* Basic split container */
+/* basic split container */
 .split-container {
   --split: 65%;
   display: flex;
   width: 100%;
-  height: calc(
-    100vh - 4rem
-  ); /* account for header/footer rough heights; adjust as needed */
+  /* fill available flex space of parent */
+  flex: 1 1 0%;
+  min-height: 0;
   flex-direction: column;
   align-items: stretch;
   overflow: hidden;
 }
 
-/* panels use flex-basis based on CSS variable --split */
+/* Panels use flex-basis based on CSS variable --split */
 .split-container .panel {
   overflow: auto;
   background: transparent;
   padding: 12px;
+  /* allow panel contents to shrink inside the flex layout */
+  min-height: 0;
 }
 
-/* portrait: vertical split (top / separator / bottom) */
+/* portrait: vertical split (top | separator | bottom) */
 .split-container:not(.landscape) .panel:first-child {
   flex-basis: var(--split);
   flex-shrink: 0;
@@ -137,7 +158,7 @@ onBeforeUnmount(() => {
   flex: 1 1 0%;
 }
 
-/* landscape: horizontal split (left / separator / right) */
+/* landscape: horizontal split (left | separator | right) */
 .split-container.landscape {
   flex-direction: row;
 }

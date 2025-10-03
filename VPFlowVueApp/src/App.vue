@@ -53,7 +53,7 @@ function sendButtonClick() {
       <VPFMenuBar />
     </header>
 
-    <main class="flex-1 flex items-stretch">
+    <main class="flex-1 flex items-stretch min-h-0">
       <SplitContainer>
         <template #primary>
           <div>canvas area</div>
@@ -64,13 +64,12 @@ function sendButtonClick() {
           </div>
 
           <div class="mt-3 flex items-center gap-3">
-        <!-- TODO: change into a toggle icon -->
-        <VPFDropdownMenu :items="itemsDisplayed" />
-      
-      <!-- Apply -->
-        <Button @click="sendButtonClick">Apply</Button>
-      </div>
-</template>
+            <!-- TODO: change into a toggle icon -->
+            <VPFDropdownMenu :items="itemsDisplayed" />
+
+            <Button @click="sendButtonClick">Apply</Button>
+          </div>
+        </template>
 
         <template #secondary>
           <div>bottom/right section</div>
