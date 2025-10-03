@@ -47,7 +47,8 @@ watch(store.logs, () => {
     ref="textareaRef"
     v-model="store.logs.value"
     id="logs"
-    class="border-sky-500 border-2"
+    class="border-sky-500 border-2 font-bold max-h-20 resize-none"
     style="font-size: 12px"
+    disabled
   />
 </template>
