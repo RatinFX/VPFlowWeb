@@ -8,10 +8,9 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
-import type { Menu } from "@/models/Menu";
+import type { Menu, MenuItem } from "@/models/Menu";
 import store from "@/store";
 import { ref } from "vue";
-import type { MenuItem } from "@/models/MenuItem";
 import { log } from "@/lib/logging";
 
 const _separator: MenuItem = { isSeparator: true };
