@@ -6,6 +6,7 @@ import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
 import SplitContainer from "./components/SplitContainer.vue";
 import { log, warn } from "./lib/logging";
+import CanvasArea from "./components/CanvasArea.vue";
 
 const items = ref(["Event", "Track"]);
 
@@ -56,7 +57,7 @@ function sendButtonClick() {
     <main class="flex-1 flex items-stretch min-h-0">
       <SplitContainer>
         <template #primary>
-          <div>canvas area</div>
+          <CanvasArea />
 
           <div class="mt-2 flex items-center gap-3">
             <div>FX selector</div>
