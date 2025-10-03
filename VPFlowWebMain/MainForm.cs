@@ -5,6 +5,7 @@ using ScriptPortal.Vegas;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -108,12 +109,12 @@ namespace VPFlowWebMain
             catch (UnauthorizedAccessException uaEx)
             {
                 MessageBox.Show("WebView2 initialization failed: access denied.\nEnsure the user-data folder is writable.\nDetails: " + uaEx.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Error("WebView2 initialization failed: access denied.\nEnsure the user-data folder is writable.\nDetails: " + uaEx.Message);
+                Error("WebView2 initialization failed: access denied. Ensure the user-data folder is writable. Details: " + uaEx.Message);
             }
             catch (DllNotFoundException dllEx)
             {
                 MessageBox.Show("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64.\nDetails: " + dllEx.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Error("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64.\nDetails: " + dllEx.Message);
+                Error("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64. Details: " + dllEx.Message);
             }
             catch (Exception ex)
             {
@@ -125,13 +126,13 @@ namespace VPFlowWebMain
         internal WebMessage<T> ProcessMessage<T>(string messageJson)
             where T : BasePayload
         {
-            Log("> messageJson: " + messageJson);
+            Log("Original messageJson: " + messageJson);
 
             var ogWebMessage = JsonConvert.DeserializeObject<WebMessage>(messageJson);
             if (ogWebMessage == null)
             {
                 //MessageBox.Show("Web message handling error: invalid message format\n- " + messageJson);
-                Error("(!) Web message handling error: invalid message format\n- " + messageJson);
+                Error("Web message handling error: invalid message format: " + messageJson);
                 return null;
             }
 
@@ -139,7 +140,7 @@ namespace VPFlowWebMain
             if (!senderConvertionSuccess)
             {
                 //MessageBox.Show("Web message handling error: unknown sender\n- " + ogWebMessage.Sender);
-                Error("(!) Web message handling error: unknown sender\n- " + ogWebMessage.Sender);
+                Error("Web message handling error: unknown sender: " + ogWebMessage.Sender);
                 return null;
             }
 
@@ -151,7 +152,7 @@ namespace VPFlowWebMain
             try
             {
                 var webMessage = ProcessMessage<ApplyPayload>(e.WebMessageAsJson);
-                Log($"Processed message ({webMessage.Sender}):\n- " + JsonConvert.SerializeObject(webMessage));
+                Log($"Processed message by {webMessage.Sender}: " + JsonConvert.SerializeObject(webMessage));
 
                 // TODO: handle message
             }
@@ -173,12 +174,34 @@ namespace VPFlowWebMain
             await webVPFlow.ReceiveFromHost(new[] { "A", "B", "C" });
         }
 
+        private const int MAX_LOG_LINES = 50;
+
+        private void Commit(string prefix, string text)
+        {
+            // build new entry and append to existing text
+            var entry = prefix + text;
+            var current = string.IsNullOrEmpty(tbxLog.Text) ? entry : (tbxLog.Text + "\r\n" + entry);
+
+            // trim to last MAX_LOG_LINES lines
+            var lines = current.Split(new[] { "\r\n" }, StringSplitOptions.None);
+            if (lines.Length > MAX_LOG_LINES)
+            {
+                current = string.Join("\r\n", lines.Skip(lines.Length - MAX_LOG_LINES));
+            }
+
+            tbxLog.Text = current;
+
+            // move caret to end and ensure visible
+            tbxLog.SelectionStart = tbxLog.Text.Length;
+            tbxLog.ScrollToCaret();
+        }
+
         public void Log(string text)
         {
             Debug.WriteLine(text);
             this.Invoke((Action)(() =>
             {
-                tbxLog.AppendText("- " + text + " \r\n");
+                Commit("> ", text);
             }));
         }
 
@@ -187,7 +210,7 @@ namespace VPFlowWebMain
             Debug.WriteLine(text);
             this.Invoke((Action)(() =>
             {
-                tbxLog.AppendText("[!] " + text + " \r\n");
+                Commit("[!] ", text);
             }));
         }
 
@@ -196,7 +219,7 @@ namespace VPFlowWebMain
             Debug.WriteLine(text);
             this.Invoke((Action)(() =>
             {
-                tbxLog.AppendText("[ERROR] " + text + " \r\n");
+                Commit("[ERROR] ", text);
             }));
         }
     }
