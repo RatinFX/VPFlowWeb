@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/menubar";
 import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
 import type { Menu } from "@/models/Menu";
-import { log } from "@/store";
+import { log } from "@/lib/logging";
 
 const menus: Menu[] = [
   {

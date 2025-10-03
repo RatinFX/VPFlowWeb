@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { log } from "@/store";
+import { log } from "@/lib/logging";
 import { onBeforeUnmount, onMounted, ref, nextTick } from "vue";
 
 const DEFAULT_SPLIT = 50;

@@ -3,9 +3,9 @@ import VPFMenuBar from "./components/VPFMenuBar.vue";
 import Button from "./components/ui/button/Button.vue";
 import { computed, onMounted, ref } from "vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
-import { log, warn } from "./store";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
 import SplitContainer from "./components/SplitContainer.vue";
+import { log, warn } from "./lib/logging";
 
 const items = ref(["Event", "Track"]);
 
