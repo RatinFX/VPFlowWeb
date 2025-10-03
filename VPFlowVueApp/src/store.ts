@@ -6,9 +6,9 @@ export default {
   logs,
 };
 
-function formatLog(...data: any[]) {
+function formatLog(data: any[]) {
   return data
-    .map((d) => (typeof d === "string" ? d : JSON.stringify(d)))
+    .map((d) => (typeof d === "string" ? `"${d}"` : JSON.stringify(d)))
     .join(" ");
 }
 
