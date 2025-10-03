@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import store from "@/store";
 import Textarea from "./ui/textarea/Textarea.vue";
-import { nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
+
+const displayLogs = computed(() => store.displayLogs.value);
 
 const textareaRef = ref<any>(null);
 
@@ -44,6 +46,7 @@ watch(store.logs, () => {
 
 <template>
   <Textarea
+    v-if="displayLogs"
     ref="textareaRef"
     v-model="store.logs.value"
     id="logs"

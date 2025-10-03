@@ -9,29 +9,56 @@ import {
 } from "@/components/ui/menubar";
 import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
 import type { Menu } from "@/models/Menu";
+import store from "@/store";
+import { ref } from "vue";
+import type { MenuItem } from "@/models/MenuItem";
 import { log } from "@/lib/logging";
+
+const _separator: MenuItem = { isSeparator: true };
+
+const state = ref<{
+  displayLogs: MenuItem;
+  checkForUpdatesOnStart: MenuItem;
+  ignoreLongSectionWarning: MenuItem;
+  onlyCreateNecessaryKeyframes: MenuItem;
+}>({
+  displayLogs: {
+    label: "Display logs",
+    isCheckboxItem: true,
+    action: displayLogsToggle,
+    checkboxValue: store.displayLogs.value,
+  },
+  checkForUpdatesOnStart: {
+    label: "Check for updates on Start",
+    isCheckboxItem: true,
+    action: checkForUpdatesOnStartToggle,
+    checkboxValue: true,
+  },
+  ignoreLongSectionWarning: {
+    label: "Ignore long section warning",
+    isCheckboxItem: true,
+    action: ignoreLongSectionWarningToggle,
+    checkboxValue: false,
+  },
+  onlyCreateNecessaryKeyframes: {
+    label: "Only create necessary Keyframes",
+    isCheckboxItem: true,
+    action: onlyCreateNecessaryKeyframesToggle,
+    checkboxValue: true,
+  },
+});
 
 const menus: Menu[] = [
   {
     label: "Settings",
     items: [
-      {
-        label: "Check for updates on Start",
-        isCheckboxItem: true,
-        action: checkForUpdatesOnStartToggle,
-      },
-      { isSeparator: true },
-      {
-        label: "Ignore long section warning",
-        isCheckboxItem: true,
-        action: ignoreLongSectionWarningToggle,
-      },
-      {
-        label: "Only create necessary Keyframes",
-        isCheckboxItem: true,
-        action: onlyCreateNecessaryKeyframesToggle,
-      },
-      { isSeparator: true },
+      state.value.displayLogs,
+      _separator,
+      state.value.checkForUpdatesOnStart,
+      _separator,
+      state.value.ignoreLongSectionWarning,
+      state.value.onlyCreateNecessaryKeyframes,
+      _separator,
       {
         label: "Preferences...",
         action: preferencesOnClick,
@@ -57,16 +84,24 @@ const menus: Menu[] = [
   },
 ];
 
+function displayLogsToggle(state: boolean) {
+  log("display logs toggle to:", state);
+  store.displayLogs.value = state;
+}
+
 function checkForUpdatesOnStartToggle(state: boolean) {
-  log("check for updates on start toggle click", state);
+  log("check for updates on start toggle to:", state);
+  store.checkForUpdatesOnStart.value = state;
 }
 
 function ignoreLongSectionWarningToggle(state: boolean) {
-  log("ignore long section warning toggle click", state);
+  log("ignore long section warning toggle to:", state);
+  store.ignoreLongSectionWarning.value = state;
 }
 
 function onlyCreateNecessaryKeyframesToggle(state: boolean) {
-  log("only create necessary Keyframes toggle click", state);
+  log("only create necessary Keyframes toggle to:", state);
+  store.onlyCreateNecessaryKeyframes.value = state;
 }
 
 function preferencesOnClick() {
