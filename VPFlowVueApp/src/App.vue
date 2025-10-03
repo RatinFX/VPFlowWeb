@@ -5,6 +5,7 @@ import { computed, onMounted, ref } from "vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
 import { log, warn } from "./store";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
+import SplitContainer from "./components/SplitContainer.vue";
 
 const items = ref(["Event", "Track"]);
 
@@ -14,7 +15,7 @@ const itemsDisplayed = computed(() => {
 
 onMounted(() => {
   // Recieve data
-  window.ReceiveFromHost = (data) => {
+  window.ReceiveFromHost = (data: string) => {
     const parsed = JSON.parse(data) as string[];
     log("ReceiveFromHost", parsed);
 
@@ -47,24 +48,38 @@ function sendButtonClick() {
 
 <template>
   <div class="flex flex-col min-h-screen">
-    <header class="mb-4">
-      <!-- TODO: rethink, keep current top row and open web windows -->
+    <header>
+      <!-- TODO: rethink: keep current top row and open web windows -->
       <VPFMenuBar />
     </header>
 
-    <main class="flex flex-col flex-1 items-center justify-center">
-      <div>
+    <main class="flex-1 flex items-stretch">
+      <SplitContainer>
+        <template #primary>
+          <div>canvas area</div>
+
+          <div class="mt-2 flex items-center gap-3">
+            <div>FX selector</div>
+            <div>Parameter selector</div>
+          </div>
+
+          <div class="mt-3 flex items-center gap-3">
         <!-- TODO: change into a toggle icon -->
         <VPFDropdownMenu :items="itemsDisplayed" />
-      </div>
-
-      <div>
+      
+      <!-- Apply -->
         <Button @click="sendButtonClick">Apply</Button>
       </div>
+</template>
+
+        <template #secondary>
+          <div>bottom/right section</div>
+        </template>
+      </SplitContainer>
     </main>
 
-    <div class="w-full h-30 grid gap-1">
+    <footer>
       <LoggingTextarea />
-    </div>
+    </footer>
   </div>
 </template>
