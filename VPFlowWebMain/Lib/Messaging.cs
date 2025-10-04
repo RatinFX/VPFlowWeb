@@ -6,7 +6,7 @@ namespace VPFlowWebMain.Lib
 {
     internal class Messaging
     {
-        internal static (SenderType sender, object payload) Process(string messageJson)
+        internal static (SenderType? senderType, object payload) Process(string messageJson)
         {
             Logging.Log("Original messageJson: " + messageJson);
 
@@ -15,24 +15,24 @@ namespace VPFlowWebMain.Lib
             {
                 //MessageBox.Show("Web message handling error: invalid message format\n- " + messageJson);
                 Logging.Error("Web message handling error: invalid message format: " + messageJson);
-                return null;
+                return (null, null);
             }
 
-            var senderConvertionSuccess = Enum.TryParse(ogWebMessage.Sender, true, out SenderType sender);
+            var senderConvertionSuccess = Enum.TryParse(ogWebMessage.SenderType, true, out SenderType senderType);
             if (!senderConvertionSuccess)
             {
                 //MessageBox.Show("Web message handling error: unknown sender\n- " + ogWebMessage.Sender);
-                Logging.Error("Web message handling error: unknown sender: " + ogWebMessage.Sender);
-                return null;
+                Logging.Error("Web message handling error: unknown sender: " + ogWebMessage.SenderType);
+                return (null, null);
             }
 
-            return (sender, ogWebMessage.Payload);
+            return (senderType, ogWebMessage.Payload);
         }
 
-        internal static WebMessageBase<T> CreateWebMessage<T>(SenderType sender, object payload)
+        internal static WebMessage<T> CreateWebMessage<T>(SenderType senderType, object payload)
             where T : BasePayload
         {
-            return new WebMessageBase<T>(sender, payload);
+            return new WebMessage<T>(senderType, payload);
         }
     }
 }

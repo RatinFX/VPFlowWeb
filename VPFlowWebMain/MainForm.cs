@@ -1,5 +1,6 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
+using Newtonsoft.Json;
 using ScriptPortal.Vegas;
 using System;
 using System.IO;
@@ -7,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VPFlowWebMain.Lib;
+using VPFlowWebMain.Models;
 
 namespace VPFlowWebMain
 {
@@ -127,22 +129,22 @@ namespace VPFlowWebMain
         {
             try
             {
-                var (sender, payload) = Messaging.Process(e.WebMessageAsJson);
+                var (senderType, payload) = Messaging.Process(e.WebMessageAsJson);
 
-                if (sender is null)
+                if (senderType is null || payload is null)
                 {
                     return;
                 }
 
-                if (sender is SenderType.BtnApply)
+                if (senderType is SenderType.BtnApply)
                 {
-                    HandleApply(sender, payload);
+                    HandleApply(payload);
                     return;
                 }
 
-                if (sender is SenderType.BtnOther)
+                if (senderType is SenderType.BtnOther)
                 {
-                    HandleOther(sender, payload);
+                    HandleOther(payload);
                     return;
                 }
             }
@@ -155,14 +157,16 @@ namespace VPFlowWebMain
 
         internal void HandleApply(object payload)
         {
-            Logging.Log("HandleApply called");
-            var wm = Messaging.CreateWebMessage<ApplyPayload>(SenderType.BtnApply, payload);
+            Logging.Log("HandleApply called for: " + SenderType.BtnApply);
+            var webMessage = Messaging.CreateWebMessage<ApplyPayload>(SenderType.BtnApply, payload);
+            Logging.Log("WebMessage: " + JsonConvert.SerializeObject(webMessage));
         }
 
         internal void HandleOther(object payload)
         {
             Logging.Log("HandleOther called");
-            var wm = Messaging.CreateWebMessage<OtherPayload>(SenderType.BtnOther, payload);
+            var webMessage = Messaging.CreateWebMessage<OtherPayload>(SenderType.BtnOther, payload);
+            Logging.Log("WebMessage: " + JsonConvert.SerializeObject(webMessage));
         }
 
         private async void Button_Click(object sender, EventArgs e)

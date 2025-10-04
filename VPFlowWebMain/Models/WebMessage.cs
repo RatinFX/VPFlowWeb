@@ -5,7 +5,7 @@ namespace VPFlowWebMain.Models
 {
     internal class WebMessageBase
     {
-        public string Sender { get; set; }
+        public string SenderType { get; set; }
         public object Payload { get; set; }
     }
 
@@ -18,11 +18,11 @@ namespace VPFlowWebMain.Models
     internal class WebMessage<T>
         where T : BasePayload
     {
-        public SenderType Sender { get; set; }
+        public SenderType SenderType { get; set; }
         public T Payload { get; set; }
-        public WebMessage(SenderType sender, object payload)
+        public WebMessage(SenderType senderType, object payload)
         {
-            Sender = sender;
+            SenderType = senderType;
             Payload = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(payload));
         }
     }
