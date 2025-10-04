@@ -18,7 +18,7 @@ function trim(text: string) {
 
 function commit(prefix: string, data: any[]) {
   const entry = prefix + format(data);
-  const newText = store.logs.value + "\r\n" + entry;
+  const newText = !store.logs.value ? entry : store.logs.value + "\r\n" + entry;
   store.logs.value = trim(newText);
 }
 
