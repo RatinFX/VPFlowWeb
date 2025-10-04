@@ -15,8 +15,6 @@ namespace VPFlowWebMain
         BtnOther
     }
 
-    internal abstract class BasePayload { }
-
     internal class WebMessage<T>
         where T : BasePayload
     {
@@ -28,6 +26,8 @@ namespace VPFlowWebMain
             Payload = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(payload));
         }
     }
+
+    internal abstract class BasePayload { }
 
     internal class ApplyPayload : BasePayload
     {

@@ -5,18 +5,8 @@ using System.Windows.Forms;
 
 namespace VPFlowWebMain
 {
-    internal class Logging
+    internal static class Logging
     {
-        private static Logging _instance;
-        public static Logging Instance
-        {
-            get
-            {
-                _instance ??= new Logging();
-                return _instance;
-            }
-        }
-
         private static TextBox LogArea => MainForm.Instance.LogArea;
 
         private const int MAX_LOG_LINES = 50;

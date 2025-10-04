@@ -130,7 +130,7 @@ namespace VPFlowWebMain
                 var webMessage = Messaging.ProcessMessage<ApplyPayload>(e.WebMessageAsJson);
                 Logging.Log($"Processed message by {webMessage.Sender}: " + JsonConvert.SerializeObject(webMessage));
 
-                // TODO: handle message
+                // TODO: handle messages
             }
             catch (Exception ex)
             {
