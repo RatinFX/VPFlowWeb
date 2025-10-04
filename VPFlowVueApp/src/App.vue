@@ -49,15 +49,21 @@ onMounted(() => {
           </div>
 
           <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
-            <VPFDropdownMenu :items="['S_Shape', 'S_BlurMoCurves']" />
-            <VPFDropdownMenu :items="['Test prop', 'X', 'Y', 'Z']" />
+            <VPFDropdownMenu
+              buttonClasses="w-1/2"
+              :items="['S_Shape', 'S_BlurMoCurves']"
+            />
+            <VPFDropdownMenu
+              buttonClasses="w-1/2"
+              :items="['Test prop', 'X', 'Y', 'Z']"
+            />
           </div>
 
           <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
             <!-- TODO: change into a toggle icon -->
-            <VPFDropdownMenu buttonClasses="w-18" :items="itemsDisplayed" />
+            <VPFDropdownMenu buttonClasses="w-1/3" :items="itemsDisplayed" />
 
-            <Button @click="applyClick">Apply</Button>
+            <Button class="w-2/3" @click="applyClick">Apply</Button>
           </div>
         </template>
 
