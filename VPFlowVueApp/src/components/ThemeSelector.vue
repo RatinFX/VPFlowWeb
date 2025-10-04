@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { useColorMode } from "@vueuse/core";
 import {
   MenubarContent,
   MenubarMenu,
@@ -8,9 +7,11 @@ import {
   MenubarRadioGroup,
   MenubarRadioItem,
 } from "@/components/ui/menubar";
+import store from "@/store";
+import { useColorMode } from "@vueuse/core";
 import { log } from "@/lib/logging";
 
-const mode = useColorMode({
+store.theme = useColorMode({
   disableTransition: false,
   onChanged: (newMode, defaultHandler) => {
     log("Theme changed to:", newMode);
@@ -33,7 +34,7 @@ const mode = useColorMode({
       <span class="sr-only">Toggle theme</span>
     </MenubarTrigger>
     <MenubarContent class="min-w-26">
-      <MenubarRadioGroup v-model="mode">
+      <MenubarRadioGroup v-model="store.theme.value">
         <MenubarRadioItem value="light"> Light </MenubarRadioItem>
         <MenubarRadioItem value="dark"> Dark </MenubarRadioItem>
       </MenubarRadioGroup>
