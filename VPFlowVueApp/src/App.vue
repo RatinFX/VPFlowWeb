@@ -44,18 +44,18 @@ onMounted(() => {
             <CanvasArea />
           </div>
 
-          <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
-            <div>FX selector</div>
-            <div>Parameter selector</div>
-          </div>
-
           <div class="mt-2 flex justify-center border-cyan-500 border-2">
             <div>coordinates</div>
           </div>
 
           <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
+            <VPFDropdownMenu :items="['S_Shape', 'S_BlurMoCurves']" />
+            <VPFDropdownMenu :items="['Test prop', 'X', 'Y', 'Z']" />
+          </div>
+
+          <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
             <!-- TODO: change into a toggle icon -->
-            <VPFDropdownMenu :items="itemsDisplayed" />
+            <VPFDropdownMenu buttonClasses="w-18" :items="itemsDisplayed" />
 
             <Button @click="applyClick">Apply</Button>
           </div>
@@ -69,7 +69,7 @@ onMounted(() => {
             </div>
 
             <div
-              class="mt-2 flex-1 flex flex-wrap gap-2 border-red-400 border-2 overflow-auto"
+              class="mt-2 flex flex-wrap gap-2 overflow-auto border-red-400 border-2"
             >
               <div v-for="_ in 100" class="w-20 h-20 border-cyan-500 border-2">
                 item

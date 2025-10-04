@@ -14,6 +14,11 @@ const props = defineProps({
     required: true,
     type: Array as PropType<string[]>,
   },
+  buttonClasses: {
+    required: false,
+    type: String,
+    default: "",
+  },
 });
 
 const selectedItem = ref(getDefaultItem(props.items));
@@ -33,7 +38,9 @@ watch(
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
-      <Button class="w-18" variant="outline">{{ selectedItem }}</Button>
+      <Button :class="props.buttonClasses" variant="outline">
+        {{ selectedItem }}
+      </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent>
       <DropdownMenuRadioGroup v-model="selectedItem">
