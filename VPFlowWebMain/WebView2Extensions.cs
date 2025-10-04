@@ -9,7 +9,7 @@ namespace VPFlowWebMain
     {
         public static Task<string> RunScript(this WebView2 webView2, object payload, [CallerMemberName] string callerName = "ERROR_NO_NAME")
         {
-            MainForm.Instance.Log("Executing script: " + callerName);
+            Logging.Log("Executing script: " + callerName);
             return webView2.ExecuteScriptAsync(string.Format(
                 "window.{0}('{1}')",
                 callerName,

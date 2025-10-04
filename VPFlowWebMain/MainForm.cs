@@ -3,9 +3,7 @@ using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
 using ScriptPortal.Vegas;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -14,10 +12,12 @@ namespace VPFlowWebMain
 {
     public partial class MainForm : UserControl
     {
-        private readonly Vegas _vegas;
-        private WebView2 webVPFlow;
-
         public static MainForm Instance { get; set; }
+
+        private WebView2 webVPFlow;
+        private readonly Vegas _vegas;
+
+        public TextBox LogArea => tbxLog;
 
         public MainForm(Vegas myVegas)
         {
@@ -109,30 +109,30 @@ namespace VPFlowWebMain
             catch (UnauthorizedAccessException uaEx)
             {
                 MessageBox.Show("WebView2 initialization failed: access denied.\nEnsure the user-data folder is writable.\nDetails: " + uaEx.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Error("WebView2 initialization failed: access denied. Ensure the user-data folder is writable. Details: " + uaEx.Message);
+                Logging.Error("WebView2 initialization failed: access denied. Ensure the user-data folder is writable. Details: " + uaEx.Message);
             }
             catch (DllNotFoundException dllEx)
             {
                 MessageBox.Show("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64.\nDetails: " + dllEx.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Error("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64. Details: " + dllEx.Message);
+                Logging.Error("WebView2 native loader missing or architecture mismatch. Ensure x64 fixed runtime matches Vegas x64. Details: " + dllEx.Message);
             }
             catch (Exception ex)
             {
                 MessageBox.Show("WebView2 initialization failed: " + ex.Message, "WebView2", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Error("WebView2 initialization failed: " + ex.Message);
+                Logging.Error("WebView2 initialization failed: " + ex.Message);
             }
         }
 
         internal WebMessage<T> ProcessMessage<T>(string messageJson)
             where T : BasePayload
         {
-            Log("Original messageJson: " + messageJson);
+            Logging.Log("Original messageJson: " + messageJson);
 
             var ogWebMessage = JsonConvert.DeserializeObject<WebMessage>(messageJson);
             if (ogWebMessage == null)
             {
                 //MessageBox.Show("Web message handling error: invalid message format\n- " + messageJson);
-                Error("Web message handling error: invalid message format: " + messageJson);
+                Logging.Error("Web message handling error: invalid message format: " + messageJson);
                 return null;
             }
 
@@ -140,7 +140,7 @@ namespace VPFlowWebMain
             if (!senderConvertionSuccess)
             {
                 //MessageBox.Show("Web message handling error: unknown sender\n- " + ogWebMessage.Sender);
-                Error("Web message handling error: unknown sender: " + ogWebMessage.Sender);
+                Logging.Error("Web message handling error: unknown sender: " + ogWebMessage.Sender);
                 return null;
             }
 
@@ -152,14 +152,14 @@ namespace VPFlowWebMain
             try
             {
                 var webMessage = ProcessMessage<ApplyPayload>(e.WebMessageAsJson);
-                Log($"Processed message by {webMessage.Sender}: " + JsonConvert.SerializeObject(webMessage));
+                Logging.Log($"Processed message by {webMessage.Sender}: " + JsonConvert.SerializeObject(webMessage));
 
                 // TODO: handle message
             }
             catch (Exception ex)
             {
                 //MessageBox.Show("Web message handling error: " + ex.Message);
-                Error("Web message handling error: " + ex.Message);
+                Logging.Error("Web message handling error: " + ex.Message);
             }
         }
 
@@ -172,55 +172,6 @@ namespace VPFlowWebMain
         {
             // update web ui with data
             await webVPFlow.ReceiveFromHost(new[] { "A", "B", "C" });
-        }
-
-        private const int MAX_LOG_LINES = 50;
-
-        private void Commit(string prefix, string text)
-        {
-            // build new entry and append to existing text
-            var entry = prefix + text;
-            var current = string.IsNullOrEmpty(tbxLog.Text) ? entry : (tbxLog.Text + "\r\n" + entry);
-
-            // trim to last MAX_LOG_LINES lines
-            var lines = current.Split(new[] { "\r\n" }, StringSplitOptions.None);
-            if (lines.Length > MAX_LOG_LINES)
-            {
-                current = string.Join("\r\n", lines.Skip(lines.Length - MAX_LOG_LINES));
-            }
-
-            tbxLog.Text = current;
-
-            // move caret to end and ensure visible
-            tbxLog.SelectionStart = tbxLog.Text.Length;
-            tbxLog.ScrollToCaret();
-        }
-
-        public void Log(string text)
-        {
-            Debug.WriteLine(text);
-            this.Invoke((Action)(() =>
-            {
-                Commit("> ", text);
-            }));
-        }
-
-        public void Warn(string text)
-        {
-            Debug.WriteLine(text);
-            this.Invoke((Action)(() =>
-            {
-                Commit("[!] ", text);
-            }));
-        }
-
-        public void Error(string text)
-        {
-            Debug.WriteLine(text);
-            this.Invoke((Action)(() =>
-            {
-                Commit("[ERROR] ", text);
-            }));
         }
     }
 }
