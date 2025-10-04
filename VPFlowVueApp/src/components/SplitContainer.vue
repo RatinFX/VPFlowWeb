@@ -140,10 +140,9 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-/* Panels use flex-basis based on CSS variable --split */
+/* panels use flex-basis based on CSS variable --split */
 .split-container .panel {
   overflow: auto;
-  background: transparent;
   padding: 12px;
   /* allow panel contents to shrink inside the flex layout */
   min-height: 0;
@@ -172,9 +171,9 @@ onBeforeUnmount(() => {
 
 /* separator styles */
 .separator {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--separator);
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: background 0.2s;
   display: block;
 }
 .split-container:not(.landscape) .separator {
@@ -190,9 +189,9 @@ onBeforeUnmount(() => {
 
 /* hover and active */
 .separator:hover {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--separator-hover);
 }
 .separator:active {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--separator-active);
 }
 </style>

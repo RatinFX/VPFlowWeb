@@ -12,6 +12,7 @@ import type { Menu, MenuItem } from "@/models/Menu";
 import store from "@/store";
 import { ref } from "vue";
 import { log } from "@/lib/logging";
+import ThemeSelector from "./ThemeSelector.vue";
 
 const _separator: MenuItem = { isSeparator: true };
 
@@ -131,7 +132,7 @@ function aboutOnClick() {
         {{ menu.label }}
       </MenubarTrigger>
 
-      <MenubarContent v-if="menu.items">
+      <MenubarContent v-if="menu.items" class="min-w-0">
         <template v-for="item in menu.items" :key="item.label">
           <MenubarSeparator v-if="item.isSeparator" />
 
@@ -153,5 +154,7 @@ function aboutOnClick() {
         </template>
       </MenubarContent>
     </MenubarMenu>
+
+    <ThemeSelector />
   </Menubar>
 </template>
