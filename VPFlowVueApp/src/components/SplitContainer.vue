@@ -2,6 +2,8 @@
 import { log } from "@/lib/logging";
 import { onBeforeUnmount, onMounted, ref, nextTick } from "vue";
 
+const MIN_SPLIT = 20;
+const MAX_SPLIT = 80;
 const DEFAULT_SPLIT = 50;
 /** Percentage (0-100) */
 const split = ref<number>(loadSplit());
@@ -17,7 +19,7 @@ function loadSplit(): number {
     const raw = localStorage.getItem("vpflow.splitPercent");
     const value = raw ? parseFloat(raw) : DEFAULT_SPLIT;
     log("Loading [vpflow.splitPercent]:", value);
-    return isFinite(value) ? clamp(value, 5, 95) : DEFAULT_SPLIT;
+    return isFinite(value) ? clamp(value, MIN_SPLIT, MAX_SPLIT) : DEFAULT_SPLIT;
   } catch {
     return DEFAULT_SPLIT;
   }
@@ -39,12 +41,11 @@ function updateOrientationFromContainer() {
   const rect = containerRef.value.getBoundingClientRect();
   isLandscape.value = rect.width > rect.height;
   // ensure split stays valid when dimensions change
-  split.value = clamp(split.value, 5, 95);
+  split.value = clamp(split.value, MIN_SPLIT, MAX_SPLIT);
 }
 
 function startDrag(ev: PointerEvent) {
   if (!containerRef.value) return;
-  log("startDrag()");
   (ev.target as Element).setPointerCapture(ev.pointerId);
   dragging = true;
   window.addEventListener("pointermove", onPointerMove);
@@ -63,7 +64,7 @@ function onPointerMove(ev: PointerEvent) {
     const y = ev.clientY - rect.top;
     percent = (y / rect.height) * 100;
   }
-  split.value = clamp(percent, 5, 95);
+  split.value = clamp(percent, MIN_SPLIT, MAX_SPLIT);
 }
 
 function stopDrag(_: PointerEvent) {

@@ -27,23 +27,29 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-screen">
+  <div class="flex flex-col h-screen">
     <header>
       <!-- TODO: rethink: keep current top row and open web windows -->
       <VPFMenuBar />
     </header>
 
-    <main class="flex-1 flex items-stretch min-h-0">
+    <main class="flex-1 flex min-h-0">
       <SplitContainer>
         <template #primary>
+<div class="flex justify-center border-cyan-500 border-2">
           <CanvasArea />
+</div>
 
-          <div class="mt-2 flex items-center gap-3">
+          <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
             <div>FX selector</div>
             <div>Parameter selector</div>
           </div>
 
-          <div class="mt-3 flex items-center gap-3">
+          <div class="mt-2 flex justify-center border-cyan-500 border-2">
+            <div>coordinates</div>
+          </div>
+
+          <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
             <!-- TODO: change into a toggle icon -->
             <VPFDropdownMenu :items="itemsDisplayed" />
 
@@ -52,7 +58,21 @@ onMounted(() => {
         </template>
 
         <template #secondary>
-          <div>bottom/right section</div>
+          <div class="flex flex-col h-full">
+            <div class="flex justify-center gap-3 border-cyan-500 border-2">
+              <div>library</div>
+              <div>custom</div>
+            </div>
+
+            <div
+              class="mt-2 flex-1 flex flex-wrap gap-2 border-red-400 border-2 overflow-auto"
+            >
+              <!-- Added flex-1, overflow-auto -->
+              <div v-for="_ in 100" class="w-20 h-20 border-cyan-500 border-2">
+                item
+              </div>
+            </div>
+          </div>
         </template>
       </SplitContainer>
     </main>
