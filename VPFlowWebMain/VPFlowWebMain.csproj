@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Logging.cs" />
+    <Compile Include="Messaging.cs" />
     <Compile Include="WebMessage.cs" />
     <Compile Include="WebView2Extensions.cs" />
     <Compile Include="FlowDockableControl.cs">
