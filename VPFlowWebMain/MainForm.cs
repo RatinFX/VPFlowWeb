@@ -1,12 +1,12 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
-using Newtonsoft.Json;
 using ScriptPortal.Vegas;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using VPFlowWebMain.Lib;
 
 namespace VPFlowWebMain
 {
@@ -127,10 +127,24 @@ namespace VPFlowWebMain
         {
             try
             {
-                var webMessage = Messaging.ProcessMessage<ApplyPayload>(e.WebMessageAsJson);
-                Logging.Log($"Processed message by {webMessage.Sender}: " + JsonConvert.SerializeObject(webMessage));
+                var (sender, payload) = Messaging.Process(e.WebMessageAsJson);
 
-                // TODO: handle messages
+                if (sender is null)
+                {
+                    return;
+                }
+
+                if (sender is SenderType.BtnApply)
+                {
+                    HandleApply(sender, payload);
+                    return;
+                }
+
+                if (sender is SenderType.BtnOther)
+                {
+                    HandleOther(sender, payload);
+                    return;
+                }
             }
             catch (Exception ex)
             {
@@ -139,14 +153,20 @@ namespace VPFlowWebMain
             }
         }
 
-        private async void Button_Click(object sender, EventArgs e)
+        internal void HandleApply(object payload)
         {
-            await SomeWinFormsEventAsync();
+            Logging.Log("HandleApply called");
+            var wm = Messaging.CreateWebMessage<ApplyPayload>(SenderType.BtnApply, payload);
         }
 
-        private async Task SomeWinFormsEventAsync()
+        internal void HandleOther(object payload)
         {
-            // update web ui with data
+            Logging.Log("HandleOther called");
+            var wm = Messaging.CreateWebMessage<OtherPayload>(SenderType.BtnOther, payload);
+        }
+
+        private async void Button_Click(object sender, EventArgs e)
+        {
             await webVPFlow.ReceiveFromHost(new[] { "A", "B", "C" });
         }
     }

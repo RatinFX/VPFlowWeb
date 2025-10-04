@@ -2,12 +2,21 @@
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using VPFlowWebMain.Lib;
 
 namespace VPFlowWebMain
 {
     internal static class WebView2Extensions
     {
-        public static Task<string> RunScript(this WebView2 webView2, object payload, [CallerMemberName] string callerName = "ERROR_NO_NAME")
+        /// <summary>
+        /// Runs the JavaScript function named after the caller method,
+        /// passing the serialized payload as an argument.
+        /// </summary>
+        public static Task<string> RunScript(
+            this WebView2 webView2, 
+            object payload, 
+            [CallerMemberName] string callerName = "ERROR_NO_NAME"
+        )
         {
             Logging.Log("Executing script: " + callerName);
             return webView2.ExecuteScriptAsync(string.Format(

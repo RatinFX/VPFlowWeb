@@ -1,16 +1,16 @@
 ﻿using Newtonsoft.Json;
 using System;
+using VPFlowWebMain.Models;
 
-namespace VPFlowWebMain
+namespace VPFlowWebMain.Lib
 {
     internal class Messaging
     {
-        static internal WebMessage<T> ProcessMessage<T>(string messageJson)
-            where T : BasePayload
+        internal static (SenderType sender, object payload) Process(string messageJson)
         {
             Logging.Log("Original messageJson: " + messageJson);
 
-            var ogWebMessage = JsonConvert.DeserializeObject<WebMessage>(messageJson);
+            var ogWebMessage = JsonConvert.DeserializeObject<WebMessageBase>(messageJson);
             if (ogWebMessage == null)
             {
                 //MessageBox.Show("Web message handling error: invalid message format\n- " + messageJson);
@@ -26,7 +26,13 @@ namespace VPFlowWebMain
                 return null;
             }
 
-            return new WebMessage<T>(sender, ogWebMessage.Payload);
+            return (sender, ogWebMessage.Payload);
+        }
+
+        internal static WebMessageBase<T> CreateWebMessage<T>(SenderType sender, object payload)
+            where T : BasePayload
+        {
+            return new WebMessageBase<T>(sender, payload);
         }
     }
 }

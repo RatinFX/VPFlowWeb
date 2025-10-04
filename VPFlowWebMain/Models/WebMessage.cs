@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace VPFlowWebMain
+namespace VPFlowWebMain.Models
 {
-    internal class WebMessage
+    internal class WebMessageBase
     {
         public string Sender { get; set; }
         public object Payload { get; set; }
@@ -25,18 +25,5 @@ namespace VPFlowWebMain
             Sender = sender;
             Payload = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(payload));
         }
-    }
-
-    internal abstract class BasePayload { }
-
-    internal class ApplyPayload : BasePayload
-    {
-        public List<float> Coordinates { get; set; }
-    }
-
-    internal class OtherPayload : BasePayload
-    {
-        public string SomeData { get; set; }
-        public string SomeData2 { get; set; }
     }
 }

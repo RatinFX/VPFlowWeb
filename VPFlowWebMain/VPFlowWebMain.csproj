@@ -54,9 +54,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Logging.cs" />
-    <Compile Include="Messaging.cs" />
-    <Compile Include="WebMessage.cs" />
+    <Compile Include="Models\BasePayload.cs" />
+    <Compile Include="Lib\Logging.cs" />
+    <Compile Include="Lib\Messaging.cs" />
+    <Compile Include="Models\WebMessage.cs" />
     <Compile Include="WebView2Extensions.cs" />
     <Compile Include="FlowDockableControl.cs">
       <SubType>UserControl</SubType>
