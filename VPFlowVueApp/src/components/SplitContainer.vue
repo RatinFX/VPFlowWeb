@@ -128,24 +128,19 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* basic split container */
 .split-container {
   --split: 65%;
   display: flex;
   width: 100%;
-  /* fill available flex space of parent */
   flex: 1 1 0%;
   min-height: 0;
   flex-direction: column;
-  align-items: stretch;
   overflow: hidden;
 }
 
-/* panels use flex-basis based on CSS variable --split */
 .split-container .panel {
   overflow: auto;
   padding: 12px;
-  /* allow panel contents to shrink inside the flex layout */
   min-height: 0;
 }
 
@@ -175,7 +170,6 @@ onBeforeUnmount(() => {
   background: var(--separator);
   flex-shrink: 0;
   transition: background 0.2s;
-  display: block;
 }
 .split-container:not(.landscape) .separator {
   height: 8px;

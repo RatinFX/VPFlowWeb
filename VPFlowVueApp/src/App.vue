@@ -71,7 +71,6 @@ onMounted(() => {
             <div
               class="mt-2 flex-1 flex flex-wrap gap-2 border-red-400 border-2 overflow-auto"
             >
-              <!-- Added flex-1, overflow-auto -->
               <div v-for="_ in 100" class="w-20 h-20 border-cyan-500 border-2">
                 item
               </div>
