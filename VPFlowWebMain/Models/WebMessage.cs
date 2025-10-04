@@ -1,28 +1,27 @@
 ﻿using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace VPFlowWebMain.Models
 {
     internal class WebMessageBase
     {
-        public string SenderType { get; set; }
+        public string MessageType { get; set; }
         public object Payload { get; set; }
     }
 
-    internal enum SenderType
+    internal enum MessageType
     {
-        BtnApply,
-        BtnOther
+        Apply,
+        Settings
     }
 
     internal class WebMessage<T>
         where T : BasePayload
     {
-        public SenderType SenderType { get; set; }
+        public MessageType MessageType { get; set; }
         public T Payload { get; set; }
-        public WebMessage(SenderType senderType, object payload)
+        public WebMessage(MessageType messageType, object payload)
         {
-            SenderType = senderType;
+            MessageType = messageType;
             Payload = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(payload));
         }
     }

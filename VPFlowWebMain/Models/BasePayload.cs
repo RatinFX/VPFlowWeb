@@ -9,9 +9,12 @@ namespace VPFlowWebMain.Models
         public List<float> Coordinates { get; set; }
     }
 
-    internal class OtherPayload : BasePayload
+    internal class SettingsPayload : BasePayload
     {
-        public string SomeData { get; set; }
-        public string SomeData2 { get; set; }
+        public string Theme { get; set; }
+        public bool DisplayLogs { get; set; }
+        public bool CheckForUpdatesOnStart { get; set; }
+        public bool IgnoreLongSectionWarning { get; set; }
+        public bool OnlyCreateNecessaryKeyframes { get; set; }
     }
 }

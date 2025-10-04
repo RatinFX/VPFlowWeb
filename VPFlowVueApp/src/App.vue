@@ -7,13 +7,17 @@ import LoggingTextarea from "./components/LoggingTextarea.vue";
 import SplitContainer from "./components/SplitContainer.vue";
 import { log } from "./lib/logging";
 import CanvasArea from "./components/CanvasArea.vue";
-import messaging from "./lib/messaging";
+import messaging, { MessageType } from "./lib/messaging";
 
 const items = ref(["Event", "Track"]);
 
 const itemsDisplayed = computed(() => {
   return items.value;
 });
+
+function applyClick() {
+  messaging.sendMessage(MessageType.Apply);
+}
 
 onMounted(() => {
   // Recieve data
@@ -36,9 +40,9 @@ onMounted(() => {
     <main class="flex-1 flex min-h-0">
       <SplitContainer>
         <template #primary>
-<div class="flex justify-center border-cyan-500 border-2">
-          <CanvasArea />
-</div>
+          <div class="flex justify-center border-cyan-500 border-2">
+            <CanvasArea />
+          </div>
 
           <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
             <div>FX selector</div>
@@ -53,7 +57,7 @@ onMounted(() => {
             <!-- TODO: change into a toggle icon -->
             <VPFDropdownMenu :items="itemsDisplayed" />
 
-            <Button @click="messaging.sendButtonClick">Apply</Button>
+            <Button @click="applyClick">Apply</Button>
           </div>
         </template>
 

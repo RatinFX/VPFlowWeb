@@ -129,43 +129,42 @@ namespace VPFlowWebMain
         {
             try
             {
-                var (senderType, payload) = Messaging.Process(e.WebMessageAsJson);
+                var (messageType, payload) = Messaging.Process(e.WebMessageAsJson);
 
-                if (senderType is null || payload is null)
+                if (messageType is null || payload is null)
                 {
                     return;
                 }
 
-                if (senderType is SenderType.BtnApply)
+                if (messageType is MessageType.Apply)
                 {
                     HandleApply(payload);
                     return;
                 }
 
-                if (senderType is SenderType.BtnOther)
+                if (messageType is MessageType.Settings)
                 {
-                    HandleOther(payload);
+                    HandleSettings(payload);
                     return;
                 }
             }
             catch (Exception ex)
             {
-                //MessageBox.Show("Web message handling error: " + ex.Message);
                 Logging.Error("Web message handling error: " + ex.Message);
             }
         }
 
         internal void HandleApply(object payload)
         {
-            Logging.Log("HandleApply called for: " + SenderType.BtnApply);
-            var webMessage = Messaging.CreateWebMessage<ApplyPayload>(SenderType.BtnApply, payload);
+            Logging.Log("HandleApply called for: " + MessageType.Apply);
+            var webMessage = Messaging.CreateWebMessage<ApplyPayload>(MessageType.Apply, payload);
             Logging.Log("WebMessage: " + JsonConvert.SerializeObject(webMessage));
         }
 
-        internal void HandleOther(object payload)
+        internal void HandleSettings(object payload)
         {
-            Logging.Log("HandleOther called");
-            var webMessage = Messaging.CreateWebMessage<OtherPayload>(SenderType.BtnOther, payload);
+            Logging.Log("HandleSettings called for: " + MessageType.Settings);
+            var webMessage = Messaging.CreateWebMessage<SettingsPayload>(MessageType.Settings, payload);
             Logging.Log("WebMessage: " + JsonConvert.SerializeObject(webMessage));
         }
 

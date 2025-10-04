@@ -6,33 +6,31 @@ namespace VPFlowWebMain.Lib
 {
     internal class Messaging
     {
-        internal static (SenderType? senderType, object payload) Process(string messageJson)
+        internal static (MessageType? messageType, object payload) Process(string payload)
         {
-            Logging.Log("Original messageJson: " + messageJson);
+            Logging.Log("Original payload: " + payload);
 
-            var ogWebMessage = JsonConvert.DeserializeObject<WebMessageBase>(messageJson);
+            var ogWebMessage = JsonConvert.DeserializeObject<WebMessageBase>(payload);
             if (ogWebMessage == null)
             {
-                //MessageBox.Show("Web message handling error: invalid message format\n- " + messageJson);
-                Logging.Error("Web message handling error: invalid message format: " + messageJson);
+                Logging.Error("Web message handling error: invalid message format: " + payload);
                 return (null, null);
             }
 
-            var senderConvertionSuccess = Enum.TryParse(ogWebMessage.SenderType, true, out SenderType senderType);
-            if (!senderConvertionSuccess)
+            var messageTypeConvertionSuccess = Enum.TryParse(ogWebMessage.MessageType, true, out MessageType messageType);
+            if (!messageTypeConvertionSuccess)
             {
-                //MessageBox.Show("Web message handling error: unknown sender\n- " + ogWebMessage.Sender);
-                Logging.Error("Web message handling error: unknown sender: " + ogWebMessage.SenderType);
+                Logging.Error("Web message handling error: unknown messageType: " + ogWebMessage.MessageType);
                 return (null, null);
             }
 
-            return (senderType, ogWebMessage.Payload);
+            return (messageType, ogWebMessage.Payload);
         }
 
-        internal static WebMessage<T> CreateWebMessage<T>(SenderType senderType, object payload)
+        internal static WebMessage<T> CreateWebMessage<T>(MessageType messageType, object payload)
             where T : BasePayload
         {
-            return new WebMessage<T>(senderType, payload);
+            return new WebMessage<T>(messageType, payload);
         }
     }
 }
