@@ -32,13 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ScriptPortal.Vegas, Version=14.0.0.270, Culture=neutral, PublicKeyToken=3cda94b1926e6fbc, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ScriptPortal.Vegas.dll</HintPath>
+    <Reference Include="ScriptPortal.Vegas">
+            <HintPath>..\..\ScriptPortal.Vegas.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sony.Vegas">
-      <HintPath>..\Sony.Vegas.dll</HintPath>
+      <HintPath>..\..\Sony.Vegas.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
