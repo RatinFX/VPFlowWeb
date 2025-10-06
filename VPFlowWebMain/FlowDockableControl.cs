@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Drawing;
+using VPFlowWebMain.Config;
 
 namespace VPFlowWebMain
 {
@@ -9,9 +10,9 @@ namespace VPFlowWebMain
     {
         private MainForm _mainControl;
 
-        public FlowDockableControl(CustomCommand cc) : base(Info.InsanceName)
+        public FlowDockableControl(CustomCommand cc) : base(Parameters.InsanceName)
         {
-            DisplayName = Info.DisplayName;
+            DisplayName = Parameters.DisplayName;
             AutoLoadCommand = cc;
             PersistDockWindowState = true;
         }
@@ -95,9 +96,9 @@ namespace VPFlowWebMain
 
         private CustomCommand SetCustomCommand(CommandCategory category)
         {
-            return new CustomCommand(category, Info.DisplayName)
+            return new CustomCommand(category, Parameters.DisplayName)
             {
-                MenuItemName = Info.DisplayName,
+                MenuItemName = Parameters.DisplayName,
             };
         }
 
@@ -116,12 +117,12 @@ namespace VPFlowWebMain
 
         private void HandleMenuPopup(object sender, EventArgs e)
         {
-            cc.Checked = myVegas.FindDockView(Info.InsanceName);
+            cc.Checked = myVegas.FindDockView(Parameters.InsanceName);
         }
 
         private void HandleInvoked(object sender, EventArgs e)
         {
-            if (myVegas.ActivateDockView(Info.InsanceName))
+            if (myVegas.ActivateDockView(Parameters.InsanceName))
                 return;
 
             var dock = new FlowDockableControl(cc);

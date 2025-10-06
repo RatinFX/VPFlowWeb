@@ -45,14 +45,26 @@ export function createPayload(type: MessageType): WebMessage {
   return result;
 }
 
-function getApplyPayload() {
+export interface ApplyPayload {
+  coordinates: number[];
+}
+
+function getApplyPayload(): ApplyPayload {
   return {
     // TODO: account for multiple points
     coordinates: [0.7, 0.27, 0.5, 1.0],
   };
 }
 
-function getSettingsPayload() {
+export interface SettingsPayload {
+  theme: string;
+  displayLogs: boolean;
+  checkForUpdatesOnStart: boolean;
+  ignoreLongSectionWarning: boolean;
+  onlyCreateNecessaryKeyframes: boolean;
+}
+
+function getSettingsPayload(): SettingsPayload {
   return {
     theme: store.theme.value,
     displayLogs: store.displayLogs.value,
@@ -62,12 +74,17 @@ function getSettingsPayload() {
   };
 }
 
-function setRecieveFromHost(callback: (data: string) => void) {
-  window.ReceiveFromHost = callback;
+function setReceiveSettings(callback: (data: string) => void) {
+  window.receiveSettings = callback;
+}
+
+function setReceiveItems(callback: (data: string) => void) {
+  window.receiveItems = callback;
 }
 
 export default {
   sendMessage,
   createPayload,
-  setRecieveFromHost,
+  setReceiveSettings,
+  setReceiveItems,
 };

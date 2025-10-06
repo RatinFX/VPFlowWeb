@@ -8,6 +8,11 @@ import {
   MenubarRadioItem,
 } from "@/components/ui/menubar";
 import store from "@/store";
+import messaging, { MessageType } from "@/lib/messaging";
+
+function onThemeUpdate() {
+  messaging.sendMessage(MessageType.Settings);
+}
 </script>
 
 <template>
@@ -24,7 +29,10 @@ import store from "@/store";
       <span class="sr-only">Toggle theme</span>
     </MenubarTrigger>
     <MenubarContent class="min-w-26">
-      <MenubarRadioGroup v-model="store.theme.value">
+      <MenubarRadioGroup
+        v-model="store.theme.value"
+        @update:model-value="onThemeUpdate"
+      >
         <MenubarRadioItem value="light"> Light </MenubarRadioItem>
         <MenubarRadioItem value="dark"> Dark </MenubarRadioItem>
       </MenubarRadioGroup>

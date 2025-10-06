@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using VPFlowWebMain.Lib;
+using VPFlowWebMain.Models;
 
 namespace VPFlowWebMain
 {
@@ -13,8 +14,8 @@ namespace VPFlowWebMain
         /// passing the serialized payload as an argument.
         /// </summary>
         public static Task<string> RunScript(
-            this WebView2 webView2, 
-            object payload, 
+            this WebView2 webView2,
+            object payload,
             [CallerMemberName] string callerName = "ERROR_NO_NAME"
         )
         {
@@ -26,7 +27,12 @@ namespace VPFlowWebMain
             ));
         }
 
-        public static Task<string> ReceiveFromHost(this WebView2 webView2, object payload)
+        public static Task<string> receiveSettings(this WebView2 webView2, SettingsPayload payload)
+        {
+            return webView2.RunScript(payload);
+        }
+
+        public static Task<string> receiveItems(this WebView2 webView2, string[] payload)
         {
             return webView2.RunScript(payload);
         }

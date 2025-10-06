@@ -1,12 +1,13 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
-using Newtonsoft.Json;
 using ScriptPortal.Vegas;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using VPFlowWebMain.Config;
+using VPFlowWebMain.Controllers;
 using VPFlowWebMain.Lib;
 using VPFlowWebMain.Models;
 
@@ -21,23 +22,34 @@ namespace VPFlowWebMain
 
         public TextBox LogArea => tbxLog;
 
+        private bool _blockSettingsUpdate = true;
+
         public MainForm(Vegas myVegas)
         {
-            Instance = this;
-            _vegas = myVegas;
-
-            InitializeComponent();
-
-            webVPFlow = new WebView2
+            try
             {
-                Dock = DockStyle.Fill,
-            };
+                Instance = this;
+                _vegas = myVegas;
 
-            gbxWebView.Controls.Add(webVPFlow);
+                InitializeComponent();
 
-            // Fire-and-forget initialization (it's safe for UI init)
-            // Use ConfigureAwait(false) when appropriate
-            _ = InitializeWebViewAsync();
+                Logging.Log("Loading WebView2...");
+                webVPFlow = new WebView2
+                {
+                    Dock = DockStyle.Fill,
+                };
+
+                gbxWebView.Controls.Add(webVPFlow);
+            }
+            catch (Exception ex)
+            {
+                Logging.Error($"Something went wrong during init: {ex.Message}");
+            }
+        }
+
+        private async void MainForm_Load(object sender, EventArgs e)
+        {
+            await InitializeWebViewAsync();
         }
 
         private async Task InitializeWebViewAsync()
@@ -92,6 +104,7 @@ namespace VPFlowWebMain
 
                     // handle messages
                     webVPFlow.WebMessageReceived += WebVPFlow_WebMessageReceived;
+                    webVPFlow.NavigationCompleted += WebVPFlow_NavigationCompleted;
 
                     webVPFlow.CoreWebView2.Navigate("http://localhost:5173/");
                     return;
@@ -144,7 +157,7 @@ namespace VPFlowWebMain
 
                 if (messageType is MessageType.Settings)
                 {
-                    HandleSettings(payload);
+                    HandleSettingsChanged(payload);
                     return;
                 }
             }
@@ -154,23 +167,131 @@ namespace VPFlowWebMain
             }
         }
 
+        private void WebVPFlow_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            this.Invoke((Action)(async () =>
+            {
+                // Set Language
+                Logging.Log("Changing language...");
+                //SetDisplayedTexts();
+
+                // Events
+                Logging.Log("Setting Event handlers...");
+                //AddEventListeners();
+
+                // Settings
+                Logging.Log("Loading Settings...");
+                await ReloadSettings();
+                _blockSettingsUpdate = false;
+            }));
+        }
+
         internal void HandleApply(object payload)
         {
-            Logging.Log("HandleApply called for: " + MessageType.Apply);
             var webMessage = Messaging.CreateWebMessage<ApplyPayload>(MessageType.Apply, payload);
-            Logging.Log("WebMessage: " + JsonConvert.SerializeObject(webMessage));
         }
 
-        internal void HandleSettings(object payload)
+        internal void HandleSettingsChanged(object payload)
         {
-            Logging.Log("HandleSettings called for: " + MessageType.Settings);
             var webMessage = Messaging.CreateWebMessage<SettingsPayload>(MessageType.Settings, payload);
-            Logging.Log("WebMessage: " + JsonConvert.SerializeObject(webMessage));
+
+            Run(() =>
+            {
+                SettingsController.Instance.SetTheme(webMessage.Payload.theme);
+                SettingsController.Instance.SetDisplayLogs(webMessage.Payload.displayLogs);
+                SettingsController.Instance.SetCheckForUpdatesOnStart(webMessage.Payload.checkForUpdatesOnStart);
+                SettingsController.Instance.SetIgnoreLongSectionWarning(webMessage.Payload.ignoreLongSectionWarning);
+                SettingsController.Instance.SetOnlyCreateNecessaryKeyframes(webMessage.Payload.onlyCreateNecessaryKeyframes);
+            });
         }
 
-        private async void Button_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
-            await webVPFlow.ReceiveFromHost(new[] { "A", "B", "C" });
+            await webVPFlow.receiveItems(new[] { "A", "B", "C" });
+        }
+
+        private async void button2_Click(object sender, EventArgs e)
+        {
+            await LoadSettings();
+        }
+
+        /// <summary>
+        /// Sets the state of buttons and checkboxes
+        /// </summary>
+        private async Task LoadSettings()
+        {
+            var payload = new SettingsPayload
+            {
+                theme = SettingsController.Instance.Theme(),
+                displayLogs = SettingsController.Instance.DisplayLogs(),
+                ignoreLongSectionWarning = SettingsController.Instance.IgnoreLongSectionWarning(),
+                onlyCreateNecessaryKeyframes = SettingsController.Instance.OnlyCreateNecessaryKeyframes(),
+                checkForUpdatesOnStart = SettingsController.Instance.CheckForUpdatesOnStart(),
+            };
+
+            await webVPFlow.receiveSettings(payload);
+        }
+
+        private async Task ReloadSettings()
+        {
+            await LoadSettings();
+
+            // change tab to tab from settings
+            // ChangeCurveTab(SettingsController.Instance.CurrentCurveTab());
+
+            CheckForUpdates();
+        }
+
+        private void CheckForUpdates(bool forceUpdate = false)
+        {
+            // Update check enabled
+            if (forceUpdate ||
+                (SettingsController.Instance.CheckForUpdatesOnStart()
+                && SettingsController.Instance.ShouldCheckForUpdate()
+            ))
+            {
+                Logging.Log("Checking for update");
+                RatinFX.VP.Helpers.Helper.CheckForUpdate(
+                    Parameters.GitHubRepoName,
+                    Parameters.CurrentVersion,
+                    latest => Parameters.LatestVersion = latest,
+                    info => Parameters.LatestVersionInfo = info
+                );
+
+                SettingsController.Instance.SetLastChecked(Parameters.LatestVersion);
+            }
+
+            // Update available, display text
+            if (!SettingsController.Instance.UsingLatestVersion() && !string.IsNullOrEmpty(Parameters.LatestVersion))
+            {
+                Logging.Log($"Update available: {Parameters.CurrentVersion} -> {Parameters.LatestVersion}");
+                // New version available: Parameters.CurrentVersion -> Parameters.LatestVersion
+            }
+
+            // Error
+            if (!string.IsNullOrEmpty(Parameters.LatestVersionInfo))
+            {
+                Logging.Error(Parameters.LatestVersionInfo);
+            }
+        }
+
+        /// <summary>
+        /// Checks for `_blockSettingsUpdate` before any action,
+        /// mainly for <see cref="LoadSettings"/>
+        /// </summary>
+        private void Run(Action action)
+        {
+            if (_blockSettingsUpdate)
+                return;
+
+            try
+            {
+                action.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Logging.Error($"Something went wrong: {ex.Message}");
+            }
         }
     }
 }

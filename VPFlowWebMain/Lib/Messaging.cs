@@ -8,7 +8,7 @@ namespace VPFlowWebMain.Lib
     {
         internal static (MessageType? messageType, object payload) Process(string payload)
         {
-            Logging.Log("Original payload: " + payload);
+            Logging.Log("Original payload:\n" + payload);
 
             var ogWebMessage = JsonConvert.DeserializeObject<WebMessageBase>(payload);
             if (ogWebMessage == null)

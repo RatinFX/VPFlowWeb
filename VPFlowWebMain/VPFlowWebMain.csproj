@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ScriptPortal.Vegas">
-            <HintPath>..\..\ScriptPortal.Vegas.dll</HintPath>
+      <HintPath>..\..\ScriptPortal.Vegas.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sony.Vegas">
@@ -52,6 +52,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Settings.cs" />
+    <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Models\BasePayload.cs" />
     <Compile Include="Lib\Logging.cs" />
     <Compile Include="Lib\Messaging.cs" />
@@ -60,7 +62,7 @@
     <Compile Include="FlowDockableControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Info.cs" />
+    <Compile Include="Config\Parameters.cs" />
     <Compile Include="MainForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -82,7 +84,7 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.4</Version>
     </PackageReference>
-<PackageReference Include="Octokit">
+    <PackageReference Include="Octokit">
       <Version>14.0.0</Version>
     </PackageReference>
   </ItemGroup>

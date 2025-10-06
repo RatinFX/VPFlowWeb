@@ -10,9 +10,10 @@ import {
 import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
 import type { Menu, MenuItem } from "@/models/Menu";
 import store from "@/store";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { log } from "@/lib/logging";
 import ThemeSelector from "./ThemeSelector.vue";
+import messaging, { MessageType, type SettingsPayload } from "@/lib/messaging";
 
 const _separator: MenuItem = { isSeparator: true };
 
@@ -46,6 +47,20 @@ const state = ref<{
     action: onlyCreateNecessaryKeyframesToggle,
     checkboxValue: true,
   },
+});
+
+onMounted(() => {
+  messaging.setReceiveSettings((data) => {
+    const parsed = JSON.parse(data) as SettingsPayload;
+    log("recieved settings:", parsed);
+
+    store.theme.value = parsed.theme;
+    store.displayLogs.value = parsed.displayLogs;
+    store.checkForUpdatesOnStart.value = parsed.checkForUpdatesOnStart;
+    store.ignoreLongSectionWarning.value = parsed.ignoreLongSectionWarning;
+    store.onlyCreateNecessaryKeyframes.value =
+      parsed.onlyCreateNecessaryKeyframes;
+  });
 });
 
 const menus: Menu[] = [
@@ -87,21 +102,25 @@ const menus: Menu[] = [
 function displayLogsToggle(state: boolean) {
   log("display logs toggle to:", state);
   store.displayLogs.value = state;
+  messaging.sendMessage(MessageType.Settings);
 }
 
 function checkForUpdatesOnStartToggle(state: boolean) {
   log("check for updates on start toggle to:", state);
   store.checkForUpdatesOnStart.value = state;
+  messaging.sendMessage(MessageType.Settings);
 }
 
 function ignoreLongSectionWarningToggle(state: boolean) {
   log("ignore long section warning toggle to:", state);
   store.ignoreLongSectionWarning.value = state;
+  messaging.sendMessage(MessageType.Settings);
 }
 
 function onlyCreateNecessaryKeyframesToggle(state: boolean) {
   log("only create necessary Keyframes toggle to:", state);
   store.onlyCreateNecessaryKeyframes.value = state;
+  messaging.sendMessage(MessageType.Settings);
 }
 
 function preferencesOnClick() {

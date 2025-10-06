@@ -412,9 +412,13 @@ declare global {
       webview: WebView;
     };
     // WinForms side methods
-    ReceiveFromHost(
-      /** JSON object */
-      data: string
-    ): void;
+    /**
+     * @param data Settings payload
+     */
+    receiveSettings(data: string): void;
+    /**
+     * @param data Items payload
+     */
+    receiveItems(data: string): void;
   }
 }

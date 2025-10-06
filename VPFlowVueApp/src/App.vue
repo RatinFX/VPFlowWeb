@@ -31,9 +31,9 @@ store.theme = useColorMode({
 
 onMounted(() => {
   // Recieve data
-  messaging.setRecieveFromHost((data: string) => {
+  messaging.setReceiveItems((data: string) => {
     const parsed = JSON.parse(data) as string[];
-    log("ReceiveFromHost", parsed);
+    log("receiveSettings", parsed);
 
     items.value = parsed;
   });

@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import store from "@/store";
 import Textarea from "./ui/textarea/Textarea.vue";
-import { computed, nextTick, ref, watch } from "vue";
-
-const displayLogs = computed(() => store.displayLogs.value);
+import { nextTick, ref, watch } from "vue";
 
 const textareaRef = ref<any>(null);
 
@@ -39,14 +37,13 @@ function scrollLogsToBottom() {
 }
 
 watch(store.logs, () => {
-  console.log("[store.logs changed - scrollLogsToBottom()]");
   scrollLogsToBottom();
 });
 </script>
 
 <template>
   <Textarea
-    v-if="displayLogs"
+    v-if="store.displayLogs.value"
     ref="textareaRef"
     v-model="store.logs.value"
     id="logs"
