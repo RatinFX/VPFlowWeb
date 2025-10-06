@@ -8,6 +8,8 @@ import SplitContainer from "./components/SplitContainer.vue";
 import { log } from "./lib/logging";
 import CanvasArea from "./components/CanvasArea.vue";
 import messaging, { MessageType } from "./lib/messaging";
+import store from "./store";
+import { useColorMode } from "@vueuse/core";
 
 const items = ref(["Event", "Track"]);
 
@@ -18,6 +20,14 @@ const itemsDisplayed = computed(() => {
 function applyClick() {
   messaging.sendMessage(MessageType.Apply);
 }
+
+store.theme = useColorMode({
+  disableTransition: false,
+  onChanged: (newMode, defaultHandler) => {
+    log("Theme changed to:", newMode);
+    defaultHandler(newMode);
+  },
+});
 
 onMounted(() => {
   // Recieve data

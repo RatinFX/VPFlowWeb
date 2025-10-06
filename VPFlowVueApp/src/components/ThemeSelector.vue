@@ -8,16 +8,6 @@ import {
   MenubarRadioItem,
 } from "@/components/ui/menubar";
 import store from "@/store";
-import { useColorMode } from "@vueuse/core";
-import { log } from "@/lib/logging";
-
-store.theme = useColorMode({
-  disableTransition: false,
-  onChanged: (newMode, defaultHandler) => {
-    log("Theme changed to:", newMode);
-    defaultHandler(newMode);
-  },
-});
 </script>
 
 <template>
