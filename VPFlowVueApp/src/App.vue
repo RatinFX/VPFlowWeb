@@ -40,36 +40,41 @@ onMounted(() => {
     <main class="flex-1 flex min-h-0">
       <SplitContainer>
         <template #primary>
-          <div class="flex justify-center border-cyan-500 border-2">
-            <CanvasArea />
-          </div>
+          <div class="flex flex-col h-full">
+            <div class="flex flex-1 justify-center border-cyan-500 border-2">
+              <CanvasArea />
+            </div>
 
-          <div class="mt-2 flex justify-center border-cyan-500 border-2">
-            <div>coordinates</div>
-          </div>
+            <div class="mt-2 flex justify-center border-cyan-500 border-2">
+              <div>coordinates</div>
+            </div>
 
-          <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
-            <VPFDropdownMenu
-              buttonClasses="w-1/2"
-              :items="['S_Shape', 'S_BlurMoCurves']"
-            />
-            <VPFDropdownMenu
-              buttonClasses="w-1/2"
-              :items="['Test prop', 'X', 'Y', 'Z']"
-            />
-          </div>
+            <div
+              class="mt-2 flex justify-center gap-2 border-cyan-500 border-2"
+            >
+              <VPFDropdownMenu
+                buttonClasses="w-1/2"
+                :items="['S_Shape', 'S_BlurMoCurves']"
+              />
+              <VPFDropdownMenu
+                buttonClasses="w-1/2"
+                :items="['Test prop', 'X', 'Y', 'Z']"
+              />
+            </div>
 
-          <div class="mt-2 flex justify-center gap-3 border-cyan-500 border-2">
-            <!-- TODO: change into a toggle icon -->
-            <VPFDropdownMenu buttonClasses="w-1/3" :items="itemsDisplayed" />
-
-            <Button class="w-2/3" @click="applyClick">Apply</Button>
+            <div
+              class="mt-2 flex justify-center gap-2 border-cyan-500 border-2"
+            >
+              <!-- TODO: change into a toggle icon -->
+              <VPFDropdownMenu buttonClasses="w-1/3" :items="itemsDisplayed" />
+              <Button class="w-2/3" @click="applyClick">Apply</Button>
+            </div>
           </div>
         </template>
 
         <template #secondary>
           <div class="flex flex-col h-full">
-            <div class="flex justify-center gap-3 border-cyan-500 border-2">
+            <div class="flex justify-center gap-2 border-cyan-500 border-2">
               <div>library</div>
               <div>custom</div>
             </div>
