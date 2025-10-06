@@ -10,6 +10,7 @@ import CanvasArea from "./components/CanvasArea.vue";
 import messaging, { MessageType } from "./lib/messaging";
 import store from "./store";
 import { useColorMode } from "@vueuse/core";
+import CurveTabs from "./components/CurveTabs.vue";
 
 const items = ref(["Event", "Track"]);
 
@@ -55,35 +56,35 @@ onMounted(() => {
               <CanvasArea />
             </div>
 
-            <div class="mt-2 flex justify-center border-cyan-500 border-2">
-              <div>coordinates</div>
+            <div class="mt-2 flex">
+              <Button variant="secondary" class="w-full">
+                0.70, 0.27, 0.50, 1.00
+              </Button>
             </div>
 
-            <div
-              class="mt-2 flex justify-center gap-2 border-cyan-500 border-2"
-            >
+            <div class="mt-2 flex gap-2">
               <VPFDropdownMenu
-                buttonClasses="w-1/2"
+                buttonClasses="flex-1"
                 :items="['S_Shape', 'S_BlurMoCurves']"
               />
               <VPFDropdownMenu
-                buttonClasses="w-1/2"
+                buttonClasses="flex-1"
                 :items="['Test prop', 'X', 'Y', 'Z']"
               />
             </div>
 
-            <div
-              class="mt-2 flex justify-center gap-2 border-cyan-500 border-2"
-            >
+            <div class="mt-2 flex gap-2">
               <!-- TODO: change into a toggle icon -->
-              <VPFDropdownMenu buttonClasses="w-1/3" :items="itemsDisplayed" />
-              <Button class="w-2/3" @click="applyClick">Apply</Button>
+              <VPFDropdownMenu buttonClasses="flex-1" :items="itemsDisplayed" />
+              <Button class="flex-1 min-w-2/3" @click="applyClick"
+                >Apply</Button
+              >
             </div>
           </div>
         </template>
 
         <template #secondary>
-          <div class="flex flex-col h-full">
+          <!-- <div class="flex flex-col h-full">
             <div class="flex justify-center gap-2 border-cyan-500 border-2">
               <div>library</div>
               <div>custom</div>
@@ -96,7 +97,8 @@ onMounted(() => {
                 item
               </div>
             </div>
-          </div>
+          </div> -->
+          <CurveTabs />
         </template>
       </SplitContainer>
     </main>

@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <div>canvas area :]</div>
+  <div class="border-red-500 border-2">canvas area :]</div>
 </template>
