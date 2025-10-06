@@ -6,9 +6,9 @@ namespace VPFlowWebMain.Config
 {
     public static class Parameters
     {
-        public static string MainFolder(string subFolder = "") => Path.Combine("VegasProFlow", subFolder);
+        public static string MainFolder(string subFolder = "") => Path.Combine("VPFlowWeb", subFolder);
 
-        public static string InsanceName { get; } = "IVPFlowWebMain";
+        public static string InsanceName { get; } = "IVPFlowWeb";
         public static string Name { get; } = "VPFlow Web Test";
         public static string GitHubRepoName { get; } = "VPFlowWeb";
 
