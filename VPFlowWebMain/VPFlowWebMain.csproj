@@ -77,11 +77,24 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2">
-      <Version>1.0.3485.44</Version>
+      <Version>1.0.3537.50</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.4</Version>
     </PackageReference>
+<PackageReference Include="Octokit">
+      <Version>14.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\RatinFX.VP\RatinFX.VP\RatinFX.VP.csproj">
+      <Project>{f94808ca-6d5a-41a4-ab96-7169df4023d3}</Project>
+      <Name>RatinFX.VP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VegasProData\VegasProData\VegasProData.csproj">
+      <Project>{24124171-3918-4bf5-a07c-3e00807b7134}</Project>
+      <Name>VegasProData</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
