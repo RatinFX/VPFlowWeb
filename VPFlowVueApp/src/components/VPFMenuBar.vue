@@ -55,11 +55,22 @@ onMounted(() => {
     log("recieved settings:", parsed);
 
     store.theme.value = parsed.theme;
+
     store.displayLogs.value = parsed.displayLogs;
+    state.value.displayLogs.checkboxValue = store.displayLogs.value;
+
     store.checkForUpdatesOnStart.value = parsed.checkForUpdatesOnStart;
+    state.value.checkForUpdatesOnStart.checkboxValue =
+      store.checkForUpdatesOnStart.value;
+
     store.ignoreLongSectionWarning.value = parsed.ignoreLongSectionWarning;
+    state.value.ignoreLongSectionWarning.checkboxValue =
+      store.ignoreLongSectionWarning.value;
+
     store.onlyCreateNecessaryKeyframes.value =
       parsed.onlyCreateNecessaryKeyframes;
+    state.value.onlyCreateNecessaryKeyframes.checkboxValue =
+      store.onlyCreateNecessaryKeyframes.value;
   });
 });
 
