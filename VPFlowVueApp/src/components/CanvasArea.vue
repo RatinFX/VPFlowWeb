@@ -860,7 +860,10 @@ defineExpose({
       </div>
     </div>
 
-    <!-- Context menu -->
+    <!-- Context menu
+     TODO: replace context menu with:
+     - https://www.shadcn-vue.com/docs/components/context-menu
+     -->
     <div
       v-if="contextMenuVisible"
       class="absolute bg-background border border-border rounded shadow-lg z-50"
