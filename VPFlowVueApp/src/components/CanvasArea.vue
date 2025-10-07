@@ -12,7 +12,7 @@ interface Point {
 
 // Constants
 const POINT_RADIUS = 2;
-const HANDLE_RADIUS = 3;
+const HANDLE_RADIUS = 2;
 const CURVE_SIZE = 100; // The curve coordinate system (0-100)
 const CANVAS_PADDING = 1000; // Extra space around curve for handles to overshoot
 const CANVAS_SIZE = CURVE_SIZE + CANVAS_PADDING * 2; // Total canvas size
@@ -283,6 +283,17 @@ function startCanvasDrag(e: MouseEvent) {
   const svgCoords = screenToSVG(e.clientX, e.clientY);
   const clickX = svgCoords.x;
   const clickY = svgCoords.y;
+
+  // Check if clicking near a point - if so, don't snap handle
+  const POINT_CLICK_THRESHOLD = 0.03; // Distance threshold for clicking on a point
+  const clickingOnPoint = points.value.some((p) => {
+    const dx = p.x - clickX;
+    const dy = p.y - clickY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < POINT_CLICK_THRESHOLD;
+  });
+
+  if (clickingOnPoint) return; // Let the point's click handler deal with it
 
   // Find the currently displayed handles (selected point and its neighbor)
   const idx = points.value.findIndex((p) => p.id === selectedPoint.value?.id);
