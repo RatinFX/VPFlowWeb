@@ -13,9 +13,14 @@ import { useColorMode } from "@vueuse/core";
 import CurveTabs from "./components/CurveTabs.vue";
 
 const items = ref(["Event", "Track"]);
+const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
 
 const itemsDisplayed = computed(() => {
   return items.value;
+});
+
+const handleDisplayText = computed(() => {
+  return canvasAreaRef.value?.handleDisplayText ?? "0.00, 0.00, 0.00, 0.00";
 });
 
 function applyClick() {
@@ -53,12 +58,12 @@ onMounted(() => {
         <template #primary>
           <div class="flex flex-col h-full">
             <div class="flex flex-1 justify-center border-cyan-500 border-2">
-              <CanvasArea />
+              <CanvasArea ref="canvasAreaRef" />
             </div>
 
             <div class="mt-2 flex">
               <Button variant="secondary" class="w-full">
-                0.70, 0.27, 0.50, 1.00
+                {{ handleDisplayText }}
               </Button>
             </div>
 
