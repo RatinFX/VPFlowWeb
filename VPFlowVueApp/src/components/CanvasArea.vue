@@ -237,7 +237,9 @@ function onHandleDrag(e: MouseEvent) {
   }
 }
 
-function stopHandleDrag() {
+function stopHandleDrag(e?: MouseEvent) {
+  if (!isDraggingHandle.value) return;
+
   isDraggingHandle.value = false;
   selectedHandle.value = null;
   window.removeEventListener("mousemove", onHandleDrag);
@@ -250,8 +252,98 @@ function selectPoint(e: MouseEvent, point: Point) {
   selectedPoint.value = point;
 }
 
-// Add point on canvas click with Ctrl
+// Start canvas drag - snap nearest handle to cursor if point selected
+function startCanvasDrag(e: MouseEvent) {
+  if (
+    e.button !== 0 ||
+    e.ctrlKey ||
+    e.altKey ||
+    !selectedPoint.value ||
+    isDraggingPoint.value ||
+    isDraggingHandle.value
+  )
+    return;
+
+  e.stopPropagation();
+
+  const svgCoords = screenToSVG(e.clientX, e.clientY);
+  const clickX = svgCoords.x;
+  const clickY = svgCoords.y;
+
+  // Find the currently displayed handles (selected point and its neighbor)
+  const idx = points.value.findIndex((p) => p.id === selectedPoint.value?.id);
+  if (idx === -1) return;
+
+  const visibleHandles: Array<{
+    point: Point;
+    type: "in" | "out";
+    distance: number;
+  }> = [];
+
+  // Check handles for selected point and its neighbor
+  for (let i = 0; i < points.value.length; i++) {
+    const point = points.value[i];
+
+    // Only include handles that are currently visible (same logic as template)
+    const isVisible =
+      point.id === selectedPoint.value.id ||
+      i === idx + 1 ||
+      (selectedPoint.value.id === points.value[points.value.length - 1]?.id &&
+        i === points.value.length - 2);
+
+    if (!isVisible) continue;
+
+    // Check handleOut
+    if (point.handleOut) {
+      const dx = point.handleOut.x - clickX;
+      const dy = point.handleOut.y - clickY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      visibleHandles.push({ point, type: "out", distance });
+    }
+
+    // Check handleIn
+    if (point.handleIn) {
+      const dx = point.handleIn.x - clickX;
+      const dy = point.handleIn.y - clickY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      visibleHandles.push({ point, type: "in", distance });
+    }
+  }
+
+  if (visibleHandles.length === 0) return;
+
+  // Find nearest handle
+  visibleHandles.sort((a, b) => a.distance - b.distance);
+  const nearest = visibleHandles[0];
+
+  // Move the nearest handle to cursor position
+  const clamped = clampHandle(clickX, clickY);
+
+  if (nearest.type === "out") {
+    if (!nearest.point.handleOut)
+      nearest.point.handleOut = { x: nearest.point.x, y: nearest.point.y };
+    nearest.point.handleOut.x = clamped.x;
+    nearest.point.handleOut.y = clamped.y;
+  } else {
+    if (!nearest.point.handleIn)
+      nearest.point.handleIn = { x: nearest.point.x, y: nearest.point.y };
+    nearest.point.handleIn.x = clamped.x;
+    nearest.point.handleIn.y = clamped.y;
+  }
+
+  // Start dragging this handle
+  selectedHandle.value = { pointId: nearest.point.id, type: nearest.type };
+  selectedPoint.value = nearest.point;
+  isDraggingHandle.value = true;
+
+  // Add event listeners for dragging
+  window.addEventListener("mousemove", onHandleDrag);
+  window.addEventListener("mouseup", stopHandleDrag);
+}
+
+// Add point on canvas click with Ctrl OR move nearest handle on drag
 function addPointOnCanvas(e: MouseEvent) {
+  // Original Ctrl+Click to add point behavior
   if (
     e.button !== 0 ||
     !e.ctrlKey ||
@@ -534,7 +626,8 @@ defineExpose({
           :class="{ 'cursor-crosshair': false }"
           :viewBox="viewBox"
           preserveAspectRatio="xMidYMid meet"
-          @click="addPointOnCanvas"
+          @click.ctrl="addPointOnCanvas"
+          @mousedown="startCanvasDrag"
         >
           <!-- Curve boundary (0-100 square) -->
           <rect
