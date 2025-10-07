@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { log } from "@/lib/logging";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 interface Point {
@@ -12,8 +13,9 @@ interface Point {
 // Constants
 const POINT_RADIUS = 2;
 const HANDLE_RADIUS = 3;
-const CANVAS_PADDING = 4; // Padding around the curve area
-const CANVAS_SIZE = 400;
+const CURVE_SIZE = 100; // The curve coordinate system (0-100)
+const CANVAS_PADDING = 150; // Extra space around curve for handles to overshoot
+const CANVAS_SIZE = CURVE_SIZE + CANVAS_PADDING * 2; // Total canvas size
 
 const container = ref<HTMLDivElement | null>(null);
 const svgRef = ref<SVGSVGElement | null>(null);
@@ -36,10 +38,9 @@ const resizeObserver = ref<ResizeObserver | null>(null);
 const isDefaultView = ref(true);
 const lastContainerSize = ref({ width: 0, height: 0 });
 
-// Computed values for the viewBox to ensure the curve area is fully visible
+// ViewBox covers the entire canvas with padding for overshooting handles
 const viewBox = computed(() => {
-  const padding = POINT_RADIUS + CANVAS_PADDING;
-  return `-${padding} -${padding} ${100 + padding * 2} ${100 + padding * 2}`;
+  return `${-CANVAS_PADDING} ${-CANVAS_PADDING} ${CANVAS_SIZE} ${CANVAS_SIZE}`;
 });
 
 // Generate bezier curve path
@@ -47,19 +48,19 @@ const curvePath = computed(() => {
   if (points.value.length < 2) return "";
 
   const p = points.value;
-  let path = `M ${p[0].x * 100} ${p[0].y * 100}`;
+  let path = `M ${p[0].x * CURVE_SIZE} ${p[0].y * CURVE_SIZE}`;
 
   // Generate cubic bezier curves for each segment
   for (let i = 0; i < p.length - 1; i++) {
     const current = p[i];
     const next = p[i + 1];
 
-    const c1x = (current.handleOut?.x ?? current.x) * 100;
-    const c1y = (current.handleOut?.y ?? current.y) * 100;
-    const c2x = (next.handleIn?.x ?? next.x) * 100;
-    const c2y = (next.handleIn?.y ?? next.y) * 100;
-    const endX = next.x * 100;
-    const endY = next.y * 100;
+    const c1x = (current.handleOut?.x ?? current.x) * CURVE_SIZE;
+    const c1y = (current.handleOut?.y ?? current.y) * CURVE_SIZE;
+    const c2x = (next.handleIn?.x ?? next.x) * CURVE_SIZE;
+    const c2y = (next.handleIn?.y ?? next.y) * CURVE_SIZE;
+    const endX = next.x * CURVE_SIZE;
+    const endY = next.y * CURVE_SIZE;
 
     path += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${endX} ${endY}`;
   }
@@ -103,7 +104,7 @@ function screenToSVG(screenX: number, screenY: number) {
   pt.y = screenY;
 
   const svgP = pt.matrixTransform(svgRef.value.getScreenCTM()?.inverse());
-  return { x: svgP.x / 100, y: svgP.y / 100 };
+  return { x: svgP.x / CURVE_SIZE, y: svgP.y / CURVE_SIZE };
 }
 
 // Clamp value between 0 and 1
@@ -302,7 +303,10 @@ function showContextMenu(e: MouseEvent, point: Point) {
 
   // Position menu at cursor with offset to prevent immediate re-trigger
   const offset = 2;
-  contextMenuPos.value = { x: e.clientX + offset, y: e.clientY + offset };
+  contextMenuPos.value = {
+    x: e.clientX + offset,
+    y: e.clientY - 40 + offset,
+  };
   contextMenuVisible.value = true;
 
   // Close on next click
@@ -374,11 +378,11 @@ function resetView() {
   const containerWidth = rect.width;
   const containerHeight = rect.height;
 
-  // Calculate scale to fit and center the canvas
+  // Calculate scale to fit the CURVE (not canvas) nicely in view
   const scale =
-    Math.min(containerWidth / CANVAS_SIZE, containerHeight / CANVAS_SIZE) * 0.9; // 0.9 for padding
+    Math.min(containerWidth / CURVE_SIZE, containerHeight / CURVE_SIZE) * 0.8; // 0.8 for comfortable padding
 
-  // Center the canvas
+  // Center the canvas (which is larger than the curve due to padding)
   const x = (containerWidth - CANVAS_SIZE * scale) / 2;
   const y = (containerHeight - CANVAS_SIZE * scale) / 2;
 
@@ -394,29 +398,11 @@ function handleResize(entries: ResizeObserverEntry[]) {
   const newWidth = rect.width;
   const newHeight = rect.height;
 
+  lastContainerSize.value = { width: newWidth, height: newHeight };
+
   // If in default view, re-center and scale appropriately
   if (isDefaultView.value) {
-    lastContainerSize.value = { width: newWidth, height: newHeight };
     resetView();
-  } else if (
-    lastContainerSize.value.width > 0 &&
-    lastContainerSize.value.height > 0
-  ) {
-    // Maintain relative position when not in default view
-    const widthRatio = newWidth / lastContainerSize.value.width;
-    const heightRatio = newHeight / lastContainerSize.value.height;
-
-    // Adjust transform to maintain relative position
-    transform.value = {
-      scale: transform.value.scale, // Keep current scale
-      x: transform.value.x * widthRatio,
-      y: transform.value.y * heightRatio,
-    };
-
-    lastContainerSize.value = { width: newWidth, height: newHeight };
-  } else {
-    // First time - just record the size
-    lastContainerSize.value = { width: newWidth, height: newHeight };
   }
 }
 
@@ -533,12 +519,12 @@ defineExpose({
           preserveAspectRatio="xMidYMid meet"
           @click="addPointOnCanvas"
         >
-          <!-- Square boundary -->
+          <!-- Curve boundary (0-100 square) -->
           <rect
             x="0"
             y="0"
-            width="100"
-            height="100"
+            :width="CURVE_SIZE"
+            :height="CURVE_SIZE"
             fill="none"
             stroke="currentColor"
             stroke-width="1"
@@ -550,10 +536,10 @@ defineExpose({
             <line
               v-for="i in 9"
               :key="`v${i}`"
-              :x1="i * 10"
+              :x1="i * (CURVE_SIZE / 10)"
               y1="0"
-              :x2="i * 10"
-              y2="100"
+              :x2="i * (CURVE_SIZE / 10)"
+              :y2="CURVE_SIZE"
               stroke="currentColor"
               stroke-width="0.5"
             />
@@ -562,9 +548,9 @@ defineExpose({
               v-for="i in 9"
               :key="`h${i}`"
               x1="0"
-              :y1="i * 10"
-              x2="100"
-              :y2="i * 10"
+              :y1="i * (CURVE_SIZE / 10)"
+              :x2="CURVE_SIZE"
+              :y2="i * (CURVE_SIZE / 10)"
               stroke="currentColor"
               stroke-width="0.5"
             />
@@ -573,18 +559,18 @@ defineExpose({
           <!-- Center lines (stronger) -->
           <g opacity="0.3">
             <line
-              x1="50"
+              :x1="CURVE_SIZE / 2"
               y1="0"
-              x2="50"
-              y2="100"
+              :x2="CURVE_SIZE / 2"
+              :y2="CURVE_SIZE"
               stroke="currentColor"
               stroke-width="1"
             />
             <line
               x1="0"
-              y1="50"
-              x2="100"
-              y2="50"
+              :y1="CURVE_SIZE / 2"
+              :x2="CURVE_SIZE"
+              :y2="CURVE_SIZE / 2"
               stroke="currentColor"
               stroke-width="1"
             />
@@ -595,7 +581,7 @@ defineExpose({
             :d="curvePath"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            stroke-width="1.5"
           />
 
           <!-- Handle lines and points for selected point and its neighbor -->
@@ -614,34 +600,32 @@ defineExpose({
                 <!-- Handle Out line -->
                 <line
                   v-if="point.handleOut"
-                  :x1="point.x * 100"
-                  :y1="point.y * 100"
-                  :x2="point.handleOut.x * 100"
-                  :y2="point.handleOut.y * 100"
+                  :x1="point.x * CURVE_SIZE"
+                  :y1="point.y * CURVE_SIZE"
+                  :x2="point.handleOut.x * CURVE_SIZE"
+                  :y2="point.handleOut.y * CURVE_SIZE"
                   stroke="currentColor"
-                  stroke-width="1"
-                  stroke-dasharray="2 2"
+                  stroke-width="0.5"
                   opacity="0.5"
                 />
 
                 <!-- Handle In line -->
                 <line
                   v-if="point.handleIn"
-                  :x1="point.x * 100"
-                  :y1="point.y * 100"
-                  :x2="point.handleIn.x * 100"
-                  :y2="point.handleIn.y * 100"
+                  :x1="point.x * CURVE_SIZE"
+                  :y1="point.y * CURVE_SIZE"
+                  :x2="point.handleIn.x * CURVE_SIZE"
+                  :y2="point.handleIn.y * CURVE_SIZE"
                   stroke="currentColor"
-                  stroke-width="1"
-                  stroke-dasharray="2 2"
+                  stroke-width="0.5"
                   opacity="0.5"
                 />
 
                 <!-- Handle Out point -->
                 <circle
                   v-if="point.handleOut"
-                  :cx="point.handleOut.x * 100"
-                  :cy="point.handleOut.y * 100"
+                  :cx="point.handleOut.x * CURVE_SIZE"
+                  :cy="point.handleOut.y * CURVE_SIZE"
                   :r="HANDLE_RADIUS"
                   class="fill-blue-500 stroke-foreground stroke-1 cursor-move"
                   @mousedown="startHandleDrag($event, point, 'out')"
@@ -650,8 +634,8 @@ defineExpose({
                 <!-- Handle In point -->
                 <circle
                   v-if="point.handleIn"
-                  :cx="point.handleIn.x * 100"
-                  :cy="point.handleIn.y * 100"
+                  :cx="point.handleIn.x * CURVE_SIZE"
+                  :cy="point.handleIn.y * CURVE_SIZE"
                   :r="HANDLE_RADIUS"
                   class="fill-green-500 stroke-foreground stroke-1 cursor-move"
                   @mousedown="startHandleDrag($event, point, 'in')"
@@ -664,8 +648,8 @@ defineExpose({
           <circle
             v-for="point in points"
             :key="point.id"
-            :cx="point.x * 100"
-            :cy="point.y * 100"
+            :cx="point.x * CURVE_SIZE"
+            :cy="point.y * CURVE_SIZE"
             :r="POINT_RADIUS"
             :class="[
               'stroke-foreground stroke-2',
