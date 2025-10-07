@@ -172,11 +172,11 @@ namespace VPFlowWebMain
             this.Invoke((Action)(async () =>
             {
                 // Set Language
-                Logging.Log("Changing language...");
+                //Logging.Log("Changing language...");
                 //SetDisplayedTexts();
 
                 // Events
-                Logging.Log("Setting Event handlers...");
+                //Logging.Log("Setting Event handlers...");
                 //AddEventListeners();
 
                 // Settings
@@ -247,18 +247,22 @@ namespace VPFlowWebMain
             // Update check enabled
             if (forceUpdate ||
                 (SettingsController.Instance.CheckForUpdatesOnStart()
-                && SettingsController.Instance.ShouldCheckForUpdate()
+            //&& SettingsController.Instance.ShouldCheckForUpdate()
             ))
             {
                 Logging.Log("Checking for update");
-                RatinFX.VP.Helpers.Helper.CheckForUpdate(
-                    Parameters.GitHubRepoName,
-                    Parameters.CurrentVersion,
-                    latest => Parameters.LatestVersion = latest,
-                    info => Parameters.LatestVersionInfo = info
-                );
 
-                SettingsController.Instance.SetLastChecked(Parameters.LatestVersion);
+                // TODO: enable update checks
+                //RatinFX.VP.Helpers.Helper.CheckForUpdate(
+                //    Parameters.GitHubRepoName,
+                //    Parameters.CurrentVersion,
+                //    latest => Parameters.LatestVersion = latest,
+                //    info => Parameters.LatestVersionInfo = info
+                //);
+
+                //SettingsController.Instance.SetLastChecked(Parameters.LatestVersion);
+
+                SettingsController.Instance.SetLastChecked(Parameters.CurrentVersion);
             }
 
             // Update available, display text
