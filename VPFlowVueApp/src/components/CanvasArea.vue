@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 interface Point {
   id: string;
@@ -8,6 +8,10 @@ interface Point {
   handleIn?: { x: number; y: number };
   handleOut?: { x: number; y: number };
 }
+
+// Constants
+const POINT_RADIUS = 6;
+const CANVAS_PADDING = 20; // Padding around the curve area
 
 const container = ref<HTMLDivElement | null>(null);
 const transform = ref({ x: 0, y: 0, scale: 1 });
@@ -19,6 +23,12 @@ const points = ref<Point[]>([
 ]);
 const selectedPoint = ref<Point | null>(null);
 
+// Computed values for the viewBox to ensure the curve area is fully visible
+const viewBox = computed(() => {
+  const padding = POINT_RADIUS + CANVAS_PADDING;
+  return `-${padding} -${padding} ${100 + padding * 2} ${100 + padding * 2}`;
+});
+
 // Pan handling
 function startDrag(e: MouseEvent) {
   if (e.button === 1 || (e.button === 0 && e.altKey)) {
@@ -28,6 +38,9 @@ function startDrag(e: MouseEvent) {
       x: e.clientX - transform.value.x,
       y: e.clientY - transform.value.y,
     };
+    // Add global mouse event listeners
+    window.addEventListener("mousemove", onDrag);
+    window.addEventListener("mouseup", stopDrag);
   }
 }
 
@@ -39,7 +52,12 @@ function onDrag(e: MouseEvent) {
 }
 
 function stopDrag() {
+  if (!isDragging.value) return;
+
   isDragging.value = false;
+  // Remove global mouse event listeners
+  window.removeEventListener("mousemove", onDrag);
+  window.removeEventListener("mouseup", stopDrag);
 }
 
 // Zoom handling
@@ -76,35 +94,55 @@ function handleKeydown(e: KeyboardEvent) {
   if (e.key === "r") resetView();
 }
 
+// Cleanup
+function cleanup() {
+  window.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener("mousemove", onDrag);
+  window.removeEventListener("mouseup", stopDrag);
+}
+
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
 });
 
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown);
-});
+onUnmounted(cleanup);
 </script>
 
 <template>
   <div
     ref="container"
-    class="relative w-full h-full overflow-hidden cursor-grab"
-    :class="{ 'cursor-grabbing': isDragging }"
+    class="relative w-full h-full overflow-hidden select-none"
+    :class="{ 'cursor-grabbing': isDragging, 'cursor-grab': !isDragging }"
     @mousedown="startDrag"
-    @mousemove="onDrag"
-    @mouseup="stopDrag"
-    @mouseleave="stopDrag"
     @wheel.prevent="handleWheel"
   >
     <div
-      class="absolute w-96 h-96 bg-muted/20 border border-muted"
+      class="absolute w-[400px] h-[400px] bg-muted/20"
       :style="{
         transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+        transformOrigin: '0 0',
       }"
     >
       <!-- Grid and curve will go here -->
       <div class="absolute inset-0">
-        <svg width="100%" height="100%" class="stroke-foreground">
+        <svg
+          width="100%"
+          height="100%"
+          class="stroke-foreground"
+          :viewBox="viewBox"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <!-- Square boundary -->
+          <rect
+            x="0"
+            y="0"
+            width="100"
+            height="100"
+            fill="none"
+            stroke="red"
+            stroke-width="1"
+          />
+
           <!-- Base line -->
           <path
             :d="`M ${points[0].x * 100} ${points[0].y * 100} L ${
@@ -121,7 +159,7 @@ onUnmounted(() => {
             :key="point.id"
             :cx="point.x * 100"
             :cy="point.y * 100"
-            r="4"
+            :r="POINT_RADIUS"
             class="fill-background stroke-foreground stroke-2"
           />
         </svg>
