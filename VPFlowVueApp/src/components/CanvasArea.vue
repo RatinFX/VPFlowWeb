@@ -566,6 +566,68 @@ function handleKeydown(e: KeyboardEvent) {
   } else if ((e.ctrlKey || e.metaKey) && e.key === "e") {
     e.preventDefault();
     exportCurveData();
+  } else if (selectedPoint.value && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    // WASD movement for selected point
+    // Prevent moving default points
+    if (
+      selectedPoint.value.id === "start" ||
+      selectedPoint.value.id === "end"
+    ) {
+      return;
+    }
+
+    const smallStep = 0.01; // Small movement step
+    const bigStep = 0.05; // Big movement step (with Shift)
+    const step = e.shiftKey ? bigStep : smallStep;
+
+    let deltaX = 0;
+    let deltaY = 0;
+
+    log(`Key pressed: ${e.key}, step: ${step}`);
+
+    switch (e.key.toLowerCase()) {
+      case "w":
+      case "arrowup":
+        deltaY = -step; // Move up (decrease Y in SVG coords, which moves down visually, but we invert)
+        e.preventDefault();
+        break;
+      case "s":
+      case "arrowdown":
+        deltaY = step; // Move down
+        e.preventDefault();
+        break;
+      case "a":
+      case "arrowleft":
+        deltaX = -step; // Move left
+        e.preventDefault();
+        break;
+      case "d":
+      case "arrowright":
+        deltaX = step; // Move right
+        e.preventDefault();
+        break;
+      default:
+        return; // Not a movement key, do nothing
+    }
+
+    // Update point position
+    const newX = clamp(selectedPoint.value.x + deltaX);
+    const actualDeltaX = newX - selectedPoint.value.x;
+    const newY = selectedPoint.value.y + deltaY;
+
+    // Move handles with the point
+    if (selectedPoint.value.handleIn) {
+      selectedPoint.value.handleIn.x += actualDeltaX;
+      selectedPoint.value.handleIn.y += deltaY;
+    }
+    if (selectedPoint.value.handleOut) {
+      selectedPoint.value.handleOut.x += actualDeltaX;
+      selectedPoint.value.handleOut.y += deltaY;
+    }
+
+    // Update point position
+    selectedPoint.value.x = newX;
+    selectedPoint.value.y = newY;
   }
 }
 
