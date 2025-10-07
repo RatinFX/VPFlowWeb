@@ -31,7 +31,7 @@ const points = ref<Point[]>([
     handleIn: { x: 0.28, y: fromDisplayValues(0.82) },
   },
 ]);
-const selectedPoint = ref<Point | null>(null);
+const selectedPoint = ref<Point | null>(null)!;
 const selectedHandle = ref<{ pointId: string; type: "in" | "out" } | null>(
   null
 );
@@ -51,12 +51,12 @@ const curvePath = computed(() => {
   if (points.value.length < 2) return "";
 
   const p = points.value;
-  let path = `M ${p[0].x * CURVE_SIZE} ${p[0].y * CURVE_SIZE}`;
+  let path = `M ${p[0]!.x * CURVE_SIZE} ${p[0]!.y * CURVE_SIZE}`;
 
   // Generate cubic bezier curves for each segment
   for (let i = 0; i < p.length - 1; i++) {
-    const current = p[i];
-    const next = p[i + 1];
+    const current = p[i]!;
+    const next = p[i + 1]!;
 
     const c1x = (current.handleOut?.x ?? current.x) * CURVE_SIZE;
     const c1y = (current.handleOut?.y ?? current.y) * CURVE_SIZE;
@@ -82,12 +82,12 @@ const handleDisplayText = computed(() => {
 
   if (idx === points.value.length - 1) {
     // Last point: show previous and current
-    p1 = points.value[idx - 1];
-    p2 = points.value[idx];
+    p1 = points.value[idx - 1]!;
+    p2 = points.value[idx]!;
   } else {
     // Other points: show current and next
-    p1 = points.value[idx];
-    p2 = points.value[idx + 1];
+    p1 = points.value[idx]!;
+    p2 = points.value[idx + 1]!;
   }
 
   const x1 = (p1.handleOut?.x ?? p1.x).toFixed(2);
@@ -219,7 +219,7 @@ function startHandleDrag(e: MouseEvent, point: Point, type: "in" | "out") {
     // Dragging handleIn affects the segment TO this point, so select the previous point
     const idx = points.value.findIndex((p) => p.id === point.id);
     if (idx > 0) {
-      selectedPoint.value = points.value[idx - 1];
+      selectedPoint.value = points.value[idx - 1]!;
     } else {
       selectedPoint.value = point; // Fallback if it's the first point
     }
@@ -254,7 +254,7 @@ function onHandleDrag(e: MouseEvent) {
   }
 }
 
-function stopHandleDrag(e?: MouseEvent) {
+function stopHandleDrag(_: MouseEvent) {
   if (!isDraggingHandle.value) return;
 
   isDraggingHandle.value = false;
@@ -310,7 +310,7 @@ function startCanvasDrag(e: MouseEvent) {
 
   // Check handles for selected point and its neighbor
   for (let i = 0; i < points.value.length; i++) {
-    const point = points.value[i];
+    const point = points.value[i]!;
 
     // Only include handles that are currently visible (same logic as template)
     const isVisible =
@@ -342,7 +342,7 @@ function startCanvasDrag(e: MouseEvent) {
 
   // Find nearest handle
   visibleHandles.sort((a, b) => a.distance - b.distance);
-  const nearest = visibleHandles[0];
+  const nearest = visibleHandles[0]!;
 
   // Move the nearest handle to cursor position
   const clamped = clampHandle(clickX, clickY);
@@ -372,7 +372,7 @@ function startCanvasDrag(e: MouseEvent) {
       (p) => p.id === nearest.point.id
     );
     if (handlePointIdx > 0) {
-      selectedPoint.value = points.value[handlePointIdx - 1];
+      selectedPoint.value = points.value[handlePointIdx - 1]!;
     } else {
       selectedPoint.value = nearest.point; // Fallback if it's the first point
     }
@@ -609,8 +609,8 @@ function exportCurveData() {
 
   // Generate handle pairs for each segment
   for (let i = 0; i < points.value.length - 1; i++) {
-    const p1 = points.value[i];
-    const p2 = points.value[i + 1];
+    const p1 = points.value[i]!;
+    const p2 = points.value[i + 1]!;
 
     data.handles.push({
       x1: p1.handleOut?.x ?? p1.x,
