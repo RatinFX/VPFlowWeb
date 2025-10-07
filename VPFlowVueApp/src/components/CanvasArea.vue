@@ -207,7 +207,21 @@ function startHandleDrag(e: MouseEvent, point: Point, type: "in" | "out") {
   if (e.button !== 0 || e.altKey) return;
 
   e.stopPropagation();
-  selectedPoint.value = point;
+
+  // Select the appropriate point based on which handle is being dragged
+  if (type === "out") {
+    // Dragging handleOut affects the segment FROM this point, so select this point
+    selectedPoint.value = point;
+  } else {
+    // Dragging handleIn affects the segment TO this point, so select the previous point
+    const idx = points.value.findIndex((p) => p.id === point.id);
+    if (idx > 0) {
+      selectedPoint.value = points.value[idx - 1];
+    } else {
+      selectedPoint.value = point; // Fallback if it's the first point
+    }
+  }
+
   selectedHandle.value = { pointId: point.id, type };
   isDraggingHandle.value = true;
 
@@ -331,9 +345,25 @@ function startCanvasDrag(e: MouseEvent) {
     nearest.point.handleIn.y = clamped.y;
   }
 
-  // Start dragging this handle
+  // Start dragging this handle and select appropriate point
   selectedHandle.value = { pointId: nearest.point.id, type: nearest.type };
-  selectedPoint.value = nearest.point;
+
+  // Select the appropriate point based on which handle is being dragged
+  if (nearest.type === "out") {
+    // Dragging handleOut affects the segment FROM this point, so select this point
+    selectedPoint.value = nearest.point;
+  } else {
+    // Dragging handleIn affects the segment TO this point, so select the previous point
+    const handlePointIdx = points.value.findIndex(
+      (p) => p.id === nearest.point.id
+    );
+    if (handlePointIdx > 0) {
+      selectedPoint.value = points.value[handlePointIdx - 1];
+    } else {
+      selectedPoint.value = nearest.point; // Fallback if it's the first point
+    }
+  }
+
   isDraggingHandle.value = true;
 
   // Add event listeners for dragging
