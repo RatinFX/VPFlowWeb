@@ -421,7 +421,7 @@ function handleResize(entries: ResizeObserverEntry[]) {
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === "r" || e.key === "R") {
     resetView();
-  } else if ((e.key === "Delete" || e.key === "d") && selectedPoint.value) {
+  } else if ((e.key === "Delete" || e.key === "x") && selectedPoint.value) {
     deleteSelectedPoint();
   } else if ((e.ctrlKey || e.metaKey) && e.key === "e") {
     e.preventDefault();
