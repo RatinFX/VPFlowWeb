@@ -25,8 +25,8 @@ const isDraggingPoint = ref(false);
 const isDraggingHandle = ref(false);
 const dragStart = ref({ x: 0, y: 0 });
 const points = ref<Point[]>([
-  { id: "start", x: 0, y: 1, handleOut: { x: 0.7, y: 0.27 } },
-  { id: "end", x: 1, y: 0, handleIn: { x: 0.5, y: 1 } },
+  { id: "start", x: 0, y: 1, handleOut: { x: 0.72, y: 0.82 } },
+  { id: "end", x: 1, y: 0, handleIn: { x: 0.28, y: 0.18 } },
 ]);
 const selectedPoint = ref<Point | null>(null);
 const selectedHandle = ref<{ pointId: string; type: "in" | "out" } | null>(
@@ -267,6 +267,17 @@ function addPointOnCanvas(e: MouseEvent) {
   const x = clamp(svgCoords.x);
   const y = svgCoords.y;
 
+  // Prevent creating points too close to existing points
+  const MIN_DISTANCE = 0.05; // Minimum distance between points
+  const isTooClose = points.value.some((p) => {
+    const dx = p.x - x;
+    const dy = p.y - y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < MIN_DISTANCE;
+  });
+
+  if (isTooClose) return;
+
   // Find insertion position based on x coordinate
   let insertIdx = points.value.findIndex((p) => p.x > x);
   if (insertIdx === -1) insertIdx = points.value.length;
@@ -294,7 +305,7 @@ function addPointOnCanvas(e: MouseEvent) {
   selectedPoint.value = newPoint;
 }
 
-// Context menu
+// Context menu for points
 function showContextMenu(e: MouseEvent, point: Point) {
   e.preventDefault();
   e.stopPropagation();
