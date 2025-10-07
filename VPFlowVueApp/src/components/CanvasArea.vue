@@ -566,6 +566,35 @@ function handleKeydown(e: KeyboardEvent) {
   } else if ((e.ctrlKey || e.metaKey) && e.key === "e") {
     e.preventDefault();
     exportCurveData();
+  } else if (
+    !e.ctrlKey &&
+    !e.metaKey &&
+    !e.altKey &&
+    (e.key.toLowerCase() === "q" || e.key.toLowerCase() === "e")
+  ) {
+    // Q/E navigation between points
+    if (!selectedPoint.value || points.value.length === 0) return;
+
+    const currentIdx = points.value.findIndex(
+      (p) => p.id === selectedPoint.value?.id
+    );
+    if (currentIdx === -1) return;
+
+    if (e.key.toLowerCase() === "q") {
+      // Select previous point
+      const prevIdx = currentIdx - 1;
+      if (prevIdx >= 0) {
+        selectedPoint.value = points.value[prevIdx]!;
+        e.preventDefault();
+      }
+    } else if (e.key.toLowerCase() === "e") {
+      // Select next point
+      const nextIdx = currentIdx + 1;
+      if (nextIdx < points.value.length) {
+        selectedPoint.value = points.value[nextIdx]!;
+        e.preventDefault();
+      }
+    }
   } else if (selectedPoint.value && !e.ctrlKey && !e.metaKey && !e.altKey) {
     // WASD movement for selected point
     // Prevent moving default points
