@@ -10,9 +10,9 @@ interface Point {
 }
 
 // Constants
-const POINT_RADIUS = 4;
-const HANDLE_RADIUS = 4;
-const CANVAS_PADDING = 20; // Padding around the curve area
+const POINT_RADIUS = 2;
+const HANDLE_RADIUS = 3;
+const CANVAS_PADDING = 4; // Padding around the curve area
 const CANVAS_SIZE = 400;
 
 const container = ref<HTMLDivElement | null>(null);
@@ -32,6 +32,9 @@ const selectedHandle = ref<{ pointId: string; type: "in" | "out" } | null>(
 );
 const contextMenuVisible = ref(false);
 const contextMenuPos = ref({ x: 0, y: 0 });
+const resizeObserver = ref<ResizeObserver | null>(null);
+const isDefaultView = ref(true);
+const lastContainerSize = ref({ width: 0, height: 0 });
 
 // Computed values for the viewBox to ensure the curve area is fully visible
 const viewBox = computed(() => {
@@ -121,6 +124,7 @@ function startDrag(e: MouseEvent) {
   if (e.button === 1 || (e.button === 0 && e.altKey)) {
     // Middle click or Alt+Left click
     isDragging.value = true;
+    isDefaultView.value = false; // User is manually adjusting view
     dragStart.value = {
       x: e.clientX - transform.value.x,
       y: e.clientY - transform.value.y,
@@ -169,8 +173,26 @@ function onPointDrag(e: MouseEvent) {
   if (!isDraggingPoint.value || !selectedPoint.value) return;
 
   const svgCoords = screenToSVG(e.clientX, e.clientY);
-  selectedPoint.value.x = clamp(svgCoords.x);
-  selectedPoint.value.y = svgCoords.y;
+  const newX = clamp(svgCoords.x);
+  const newY = svgCoords.y;
+
+  // Calculate offset
+  const deltaX = newX - selectedPoint.value.x;
+  const deltaY = newY - selectedPoint.value.y;
+
+  // Move handles with the point
+  if (selectedPoint.value.handleIn) {
+    selectedPoint.value.handleIn.x += deltaX;
+    selectedPoint.value.handleIn.y += deltaY;
+  }
+  if (selectedPoint.value.handleOut) {
+    selectedPoint.value.handleOut.x += deltaX;
+    selectedPoint.value.handleOut.y += deltaY;
+  }
+
+  // Update point position
+  selectedPoint.value.x = newX;
+  selectedPoint.value.y = newY;
 }
 
 function stopPointDrag() {
@@ -325,6 +347,8 @@ function handleWheel(e: WheelEvent) {
   )
     return;
 
+  isDefaultView.value = false; // User is manually adjusting view
+
   // Zoom towards cursor position
   const rect = container.value?.getBoundingClientRect();
   if (!rect) return;
@@ -359,6 +383,41 @@ function resetView() {
   const y = (containerHeight - CANVAS_SIZE * scale) / 2;
 
   transform.value = { x, y, scale };
+  isDefaultView.value = true; // Mark as default view
+}
+
+// Handle container resize
+function handleResize(entries: ResizeObserverEntry[]) {
+  if (!entries.length || !container.value) return;
+
+  const rect = container.value.getBoundingClientRect();
+  const newWidth = rect.width;
+  const newHeight = rect.height;
+
+  // If in default view, re-center and scale appropriately
+  if (isDefaultView.value) {
+    lastContainerSize.value = { width: newWidth, height: newHeight };
+    resetView();
+  } else if (
+    lastContainerSize.value.width > 0 &&
+    lastContainerSize.value.height > 0
+  ) {
+    // Maintain relative position when not in default view
+    const widthRatio = newWidth / lastContainerSize.value.width;
+    const heightRatio = newHeight / lastContainerSize.value.height;
+
+    // Adjust transform to maintain relative position
+    transform.value = {
+      scale: transform.value.scale, // Keep current scale
+      x: transform.value.x * widthRatio,
+      y: transform.value.y * heightRatio,
+    };
+
+    lastContainerSize.value = { width: newWidth, height: newHeight };
+  } else {
+    // First time - just record the size
+    lastContainerSize.value = { width: newWidth, height: newHeight };
+  }
 }
 
 // Keyboard shortcuts
@@ -424,9 +483,20 @@ onMounted(() => {
   selectedPoint.value = points.value[0] ?? null;
   // Center view on mount
   setTimeout(() => resetView(), 10);
+
+  // Setup resize observer
+  if (container.value) {
+    resizeObserver.value = new ResizeObserver(handleResize);
+    resizeObserver.value.observe(container.value);
+  }
 });
 
-onUnmounted(cleanup);
+onUnmounted(() => {
+  cleanup();
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect();
+  }
+});
 
 // Emit handle values to parent
 defineExpose({
@@ -445,7 +515,7 @@ defineExpose({
     @wheel.prevent="handleWheel"
   >
     <div
-      class="absolute w-[400px] h-[400px] bg-muted"
+      :class="`absolute w-[${CANVAS_SIZE}px] h-[${CANVAS_SIZE}px] bg-muted`"
       :style="{
         transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
         transformOrigin: '0 0',
