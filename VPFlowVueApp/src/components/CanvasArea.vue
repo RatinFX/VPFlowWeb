@@ -162,12 +162,14 @@ function startPointDrag(e: MouseEvent, point: Point) {
   // Prevent moving default points
   if (point.id === "start" || point.id === "end") {
     selectedPoint.value = point;
+    log(`Selected locked point: ${point.id}`);
     return;
   }
 
   e.stopPropagation();
   selectedPoint.value = point;
   isDraggingPoint.value = true;
+  log(`Started dragging point: ${point.id}`);
 
   window.addEventListener("mousemove", onPointDrag);
   window.addEventListener("mouseup", stopPointDrag);
@@ -200,6 +202,15 @@ function onPointDrag(e: MouseEvent) {
 }
 
 function stopPointDrag() {
+  if (isDraggingPoint.value && selectedPoint.value) {
+    log(
+      `Stopped dragging point: ${
+        selectedPoint.value.id
+      } at (${selectedPoint.value.x.toFixed(2)}, ${(
+        1 - selectedPoint.value.y
+      ).toFixed(2)})`
+    );
+  }
   isDraggingPoint.value = false;
   window.removeEventListener("mousemove", onPointDrag);
   window.removeEventListener("mouseup", stopPointDrag);
@@ -227,6 +238,7 @@ function startHandleDrag(e: MouseEvent, point: Point, type: "in" | "out") {
 
   selectedHandle.value = { pointId: point.id, type };
   isDraggingHandle.value = true;
+  log(`Started dragging handle: ${point.id}.${type}`);
 
   window.addEventListener("mousemove", onHandleDrag);
   window.addEventListener("mouseup", stopHandleDrag);
@@ -256,6 +268,12 @@ function onHandleDrag(e: MouseEvent) {
 
 function stopHandleDrag(_: MouseEvent) {
   if (!isDraggingHandle.value) return;
+
+  if (selectedHandle.value) {
+    log(
+      `Stopped dragging handle: ${selectedHandle.value.pointId}.${selectedHandle.value.type}`
+    );
+  }
 
   isDraggingHandle.value = false;
   selectedHandle.value = null;
@@ -443,6 +461,11 @@ function addPointOnCanvas(e: MouseEvent) {
 
   points.value.splice(insertIdx, 0, newPoint);
   selectedPoint.value = newPoint;
+  log(
+    `Added new point: ${newPoint.id} at (${x.toFixed(2)}, ${(1 - y).toFixed(
+      2
+    )})`
+  );
 }
 
 // Context menu for points
@@ -479,9 +502,11 @@ function deleteSelectedPoint() {
 
   const idx = points.value.findIndex((p) => p.id === selectedPoint.value?.id);
   if (idx !== -1) {
+    const deletedId = selectedPoint.value.id;
     points.value.splice(idx, 1);
     // Select previous point after deletion
     selectedPoint.value = points.value[Math.max(0, idx - 1)] ?? null;
+    log(`Deleted point: ${deletedId}`);
   }
 
   closeContextMenu();
@@ -537,6 +562,10 @@ function resetView() {
   const x = (containerWidth - CANVAS_SIZE * scale) / 2;
   const y = (containerHeight - CANVAS_SIZE * scale) / 2;
 
+  log(
+    `Reset view to scale: ${scale.toFixed(2)} ` +
+      `from ${transform.value.scale.toFixed(2)}`
+  );
   transform.value = { x, y, scale };
   isDefaultView.value = true; // Mark as default view
 }
@@ -585,6 +614,7 @@ function handleKeydown(e: KeyboardEvent) {
       const prevIdx = currentIdx - 1;
       if (prevIdx >= 0) {
         selectedPoint.value = points.value[prevIdx]!;
+        log(`Selected previous point: ${selectedPoint.value.id}`);
         e.preventDefault();
       }
     } else if (e.key.toLowerCase() === "e") {
@@ -592,6 +622,7 @@ function handleKeydown(e: KeyboardEvent) {
       const nextIdx = currentIdx + 1;
       if (nextIdx < points.value.length) {
         selectedPoint.value = points.value[nextIdx]!;
+        log(`Selected next point: ${selectedPoint.value.id}`);
         e.preventDefault();
       }
     }
@@ -611,8 +642,6 @@ function handleKeydown(e: KeyboardEvent) {
 
     let deltaX = 0;
     let deltaY = 0;
-
-    log(`Key pressed: ${e.key}, step: ${step}`);
 
     switch (e.key.toLowerCase()) {
       case "w":
@@ -638,6 +667,8 @@ function handleKeydown(e: KeyboardEvent) {
       default:
         return; // Not a movement key, do nothing
     }
+
+    log(`Key pressed: ${e.key}, moving by step: ${step}`);
 
     // Update point position
     const newX = clamp(selectedPoint.value.x + deltaX);
@@ -712,6 +743,10 @@ function exportCurveData() {
   }
 
   console.log("Curve data exported:", data);
+  log(
+    `Exported curve with ${points.value.length} points and ${data.handles.length} segments`,
+    data
+  );
   return data;
 }
 

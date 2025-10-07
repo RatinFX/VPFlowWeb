@@ -62,7 +62,7 @@ onMounted(() => {
       <SplitContainer>
         <template #primary>
           <div class="flex flex-col h-full">
-            <div class="flex flex-1 justify-center border-cyan-500 border-2">
+            <div class="flex flex-1 justify-center">
               <CanvasArea ref="canvasAreaRef" />
             </div>
 
