@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 interface Point {
-  id: string;
+  id: string | "start" | "end";
   x: number;
   y: number;
   handleIn?: { x: number; y: number };
@@ -10,7 +10,7 @@ interface Point {
 }
 
 // Constants
-const POINT_RADIUS = 6;
+const POINT_RADIUS = 4;
 const HANDLE_RADIUS = 4;
 const CANVAS_PADDING = 20; // Padding around the curve area
 const CANVAS_SIZE = 400;
@@ -44,17 +44,24 @@ const curvePath = computed(() => {
   if (points.value.length < 2) return "";
 
   const p = points.value;
-  const startX = p[0].x * 100;
-  const startY = p[0].y * 100;
-  const endX = p[1].x * 100;
-  const endY = p[1].y * 100;
+  let path = `M ${p[0].x * 100} ${p[0].y * 100}`;
 
-  const c1x = (p[0].handleOut?.x ?? p[0].x) * 100;
-  const c1y = (p[0].handleOut?.y ?? p[0].y) * 100;
-  const c2x = (p[1].handleIn?.x ?? p[1].x) * 100;
-  const c2y = (p[1].handleIn?.y ?? p[1].y) * 100;
+  // Generate cubic bezier curves for each segment
+  for (let i = 0; i < p.length - 1; i++) {
+    const current = p[i];
+    const next = p[i + 1];
 
-  return `M ${startX} ${startY} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${endX} ${endY}`;
+    const c1x = (current.handleOut?.x ?? current.x) * 100;
+    const c1y = (current.handleOut?.y ?? current.y) * 100;
+    const c2x = (next.handleIn?.x ?? next.x) * 100;
+    const c2y = (next.handleIn?.y ?? next.y) * 100;
+    const endX = next.x * 100;
+    const endY = next.y * 100;
+
+    path += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${endX} ${endY}`;
+  }
+
+  return path;
 });
 
 // Format handle values for display
@@ -163,7 +170,7 @@ function onPointDrag(e: MouseEvent) {
 
   const svgCoords = screenToSVG(e.clientX, e.clientY);
   selectedPoint.value.x = clamp(svgCoords.x);
-  selectedPoint.value.y = clamp(svgCoords.y);
+  selectedPoint.value.y = svgCoords.y;
 }
 
 function stopPointDrag() {
@@ -235,7 +242,7 @@ function addPointOnCanvas(e: MouseEvent) {
 
   const svgCoords = screenToSVG(e.clientX, e.clientY);
   const x = clamp(svgCoords.x);
-  const y = clamp(svgCoords.y);
+  const y = svgCoords.y;
 
   // Find insertion position based on x coordinate
   let insertIdx = points.value.findIndex((p) => p.x > x);
@@ -312,7 +319,11 @@ function handleWheel(e: WheelEvent) {
   const newScale = transform.value.scale * scaleChange;
 
   // Limit zoom range
-  if (newScale < 0.1 || newScale > 10) return;
+  if (
+    newScale < 0.1
+    // || newScale > 10
+  )
+    return;
 
   // Zoom towards cursor position
   const rect = container.value?.getBoundingClientRect();
@@ -434,7 +445,7 @@ defineExpose({
     @wheel.prevent="handleWheel"
   >
     <div
-      class="absolute w-[400px] h-[400px] bg-muted/20"
+      class="absolute w-[400px] h-[400px] bg-muted"
       :style="{
         transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
         transformOrigin: '0 0',
