@@ -77,9 +77,9 @@ const handleDisplayText = computed(() => {
   }
 
   const x1 = (p1.handleOut?.x ?? p1.x).toFixed(2);
-  const y1 = (p1.handleOut?.y ?? p1.y).toFixed(2);
+  const y1 = (1 - (p1.handleOut?.y ?? p1.y)).toFixed(2); // Invert Y for display
   const x2 = (p2.handleIn?.x ?? p2.x).toFixed(2);
-  const y2 = (p2.handleIn?.y ?? p2.y).toFixed(2);
+  const y2 = (1 - (p2.handleIn?.y ?? p2.y)).toFixed(2); // Invert Y for display
 
   return `${x1}, ${y1}, ${x2}, ${y2}`;
 });
@@ -220,13 +220,60 @@ function selectPoint(e: MouseEvent, point: Point) {
   selectedPoint.value = point;
 }
 
+// Add point on canvas click with Ctrl
+function addPointOnCanvas(e: MouseEvent) {
+  if (
+    e.button !== 0 ||
+    !e.ctrlKey ||
+    e.altKey ||
+    isDraggingPoint.value ||
+    isDraggingHandle.value
+  )
+    return;
+
+  e.stopPropagation();
+
+  const svgCoords = screenToSVG(e.clientX, e.clientY);
+  const x = clamp(svgCoords.x);
+  const y = clamp(svgCoords.y);
+
+  // Find insertion position based on x coordinate
+  let insertIdx = points.value.findIndex((p) => p.x > x);
+  if (insertIdx === -1) insertIdx = points.value.length;
+
+  // Calculate appropriate handle positions to maintain curve smoothness
+  const prevPoint = points.value[insertIdx - 1];
+  const nextPoint = points.value[insertIdx];
+
+  const handleOffset = 0.1;
+
+  // Create new point with handles that blend into the curve
+  const newPoint: Point = {
+    id: `point_${Date.now()}`,
+    x,
+    y,
+    handleIn: prevPoint
+      ? { x: Math.max(prevPoint.x, x - handleOffset), y }
+      : { x: x - handleOffset, y },
+    handleOut: nextPoint
+      ? { x: Math.min(nextPoint.x, x + handleOffset), y }
+      : { x: x + handleOffset, y },
+  };
+
+  points.value.splice(insertIdx, 0, newPoint);
+  selectedPoint.value = newPoint;
+}
+
 // Context menu
 function showContextMenu(e: MouseEvent, point: Point) {
   e.preventDefault();
   e.stopPropagation();
 
   selectedPoint.value = point;
-  contextMenuPos.value = { x: e.clientX, y: e.clientY };
+
+  // Position menu at cursor with offset to prevent immediate re-trigger
+  const offset = 2;
+  contextMenuPos.value = { x: e.clientX + offset, y: e.clientY + offset };
   contextMenuVisible.value = true;
 
   // Close on next click
@@ -249,7 +296,8 @@ function deleteSelectedPoint() {
   const idx = points.value.findIndex((p) => p.id === selectedPoint.value?.id);
   if (idx !== -1) {
     points.value.splice(idx, 1);
-    selectedPoint.value = null;
+    // Select previous point after deletion
+    selectedPoint.value = points.value[Math.max(0, idx - 1)] ?? null;
   }
 
   closeContextMenu();
@@ -306,9 +354,46 @@ function resetView() {
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === "r" || e.key === "R") {
     resetView();
-  } else if (e.key === "Delete" && selectedPoint.value) {
+  } else if ((e.key === "Delete" || e.key === "d") && selectedPoint.value) {
     deleteSelectedPoint();
+  } else if ((e.ctrlKey || e.metaKey) && e.key === "e") {
+    e.preventDefault();
+    exportCurveData();
   }
+}
+
+// Export curve data
+function exportCurveData() {
+  const data = {
+    points: points.value.map((p) => ({
+      id: p.id,
+      x: p.x,
+      y: 1 - p.y, // Invert Y for export
+      handleIn: p.handleIn
+        ? { x: p.handleIn.x, y: 1 - p.handleIn.y }
+        : undefined,
+      handleOut: p.handleOut
+        ? { x: p.handleOut.x, y: 1 - p.handleOut.y }
+        : undefined,
+    })),
+    handles: [] as { x1: number; y1: number; x2: number; y2: number }[],
+  };
+
+  // Generate handle pairs for each segment
+  for (let i = 0; i < points.value.length - 1; i++) {
+    const p1 = points.value[i];
+    const p2 = points.value[i + 1];
+
+    data.handles.push({
+      x1: p1.handleOut?.x ?? p1.x,
+      y1: 1 - (p1.handleOut?.y ?? p1.y), // Invert Y
+      x2: p2.handleIn?.x ?? p2.x,
+      y2: 1 - (p2.handleIn?.y ?? p2.y), // Invert Y
+    });
+  }
+
+  console.log("Curve data exported:", data);
+  return data;
 }
 
 // Cleanup
@@ -324,6 +409,8 @@ function cleanup() {
 
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
+  // Select first point by default
+  selectedPoint.value = points.value[0] ?? null;
   // Center view on mount
   setTimeout(() => resetView(), 10);
 });
@@ -334,6 +421,7 @@ onUnmounted(cleanup);
 defineExpose({
   handleDisplayText,
   points,
+  exportCurveData,
 });
 </script>
 
@@ -359,8 +447,10 @@ defineExpose({
           width="100%"
           height="100%"
           class="stroke-foreground"
+          :class="{ 'cursor-crosshair': false }"
           :viewBox="viewBox"
           preserveAspectRatio="xMidYMid meet"
+          @click="addPointOnCanvas"
         >
           <!-- Square boundary -->
           <rect
@@ -372,6 +462,52 @@ defineExpose({
             stroke="currentColor"
             stroke-width="1"
           />
+
+          <!-- Grid lines -->
+          <g opacity="0.2">
+            <!-- Vertical lines -->
+            <line
+              v-for="i in 9"
+              :key="`v${i}`"
+              :x1="i * 10"
+              y1="0"
+              :x2="i * 10"
+              y2="100"
+              stroke="currentColor"
+              stroke-width="0.5"
+            />
+            <!-- Horizontal lines -->
+            <line
+              v-for="i in 9"
+              :key="`h${i}`"
+              x1="0"
+              :y1="i * 10"
+              x2="100"
+              :y2="i * 10"
+              stroke="currentColor"
+              stroke-width="0.5"
+            />
+          </g>
+
+          <!-- Center lines (stronger) -->
+          <g opacity="0.3">
+            <line
+              x1="50"
+              y1="0"
+              x2="50"
+              y2="100"
+              stroke="currentColor"
+              stroke-width="1"
+            />
+            <line
+              x1="0"
+              y1="50"
+              x2="100"
+              y2="50"
+              stroke="currentColor"
+              stroke-width="1"
+            />
+          </g>
 
           <!-- Bezier curve -->
           <path
@@ -467,18 +603,26 @@ defineExpose({
       </div>
     </div>
 
-    <!-- Reset button -->
-    <button
-      @click="resetView"
-      class="absolute top-2 right-2 px-2 py-1 bg-muted/20 hover:bg-muted/40 rounded text-sm"
-    >
-      Reset View (R)
-    </button>
+    <!-- Reset button and shortcuts info -->
+    <div class="absolute top-2 left-2 flex flex-col gap-1 items-start">
+      <button
+        @click="resetView"
+        class="px-2 py-1 bg-muted/20 hover:bg-muted/40 rounded text-sm"
+      >
+        Reset View (R)
+      </button>
+      <div class="text-xs text-muted-foreground bg-muted/10 px-2 py-1 rounded">
+        Ctrl+Click to add point
+      </div>
+      <div class="text-xs text-muted-foreground bg-muted/10 px-2 py-1 rounded">
+        Ctrl+E to export
+      </div>
+    </div>
 
     <!-- Context menu -->
     <div
       v-if="contextMenuVisible"
-      class="absolute bg-background border border-border rounded shadow-lg py-1 z-50"
+      class="absolute bg-background border border-border rounded shadow-lg z-50"
       :style="{ left: `${contextMenuPos.x}px`, top: `${contextMenuPos.y}px` }"
     >
       <button
@@ -486,10 +630,10 @@ defineExpose({
         @click="deleteSelectedPoint"
         class="w-full px-4 py-2 text-left hover:bg-muted text-sm"
       >
-        Delete Point
+        Delete
       </button>
       <div v-else class="px-4 py-2 text-sm text-muted-foreground">
-        Cannot delete default point
+        cannot edit
       </div>
     </div>
   </div>
