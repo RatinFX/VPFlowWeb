@@ -91,9 +91,9 @@ const handleDisplayText = computed(() => {
   }
 
   const x1 = (p1.handleOut?.x ?? p1.x).toFixed(2);
-  const y1 = (1 - (p1.handleOut?.y ?? p1.y)).toFixed(2); // Invert Y for display
+  const y1 = toDisplayValue(p1.handleOut?.y ?? p1.y).toFixed(2); // Invert Y for display
   const x2 = (p2.handleIn?.x ?? p2.x).toFixed(2);
-  const y2 = (1 - (p2.handleIn?.y ?? p2.y)).toFixed(2); // Invert Y for display
+  const y2 = toDisplayValue(p2.handleIn?.y ?? p2.y).toFixed(2); // Invert Y for display
 
   return `${x1}, ${y1}, ${x2}, ${y2}`;
 });
@@ -687,12 +687,12 @@ function exportCurveData() {
     points: points.value.map((p) => ({
       id: p.id,
       x: p.x,
-      y: 1 - p.y, // Invert Y for export
+      y: toDisplayValue(p.y), // Invert Y for export
       handleIn: p.handleIn
-        ? { x: p.handleIn.x, y: 1 - p.handleIn.y }
+        ? { x: p.handleIn.x, y: toDisplayValue(p.handleIn.y) }
         : undefined,
       handleOut: p.handleOut
-        ? { x: p.handleOut.x, y: 1 - p.handleOut.y }
+        ? { x: p.handleOut.x, y: toDisplayValue(p.handleOut.y) }
         : undefined,
     })),
     handles: [] as { x1: number; y1: number; x2: number; y2: number }[],
@@ -705,9 +705,9 @@ function exportCurveData() {
 
     data.handles.push({
       x1: p1.handleOut?.x ?? p1.x,
-      y1: 1 - (p1.handleOut?.y ?? p1.y), // Invert Y
+      y1: toDisplayValue(p1.handleOut?.y ?? p1.y), // Invert Y
       x2: p2.handleIn?.x ?? p2.x,
-      y2: 1 - (p2.handleIn?.y ?? p2.y), // Invert Y
+      y2: toDisplayValue(p2.handleIn?.y ?? p2.y), // Invert Y
     });
   }
 
