@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import { log } from "@/lib/logging";
+import type { Point, PresetCurve } from "@/models/PresetCurve";
 import { computed, onMounted, onUnmounted, ref } from "vue";
-
-interface Point {
-  id: string | "start" | "end";
-  x: number;
-  y: number;
-  handleIn?: { x: number; y: number };
-  handleOut?: { x: number; y: number };
-}
 
 // Constants
 const POINT_RADIUS = 2;
@@ -25,8 +18,18 @@ const isDraggingPoint = ref(false);
 const isDraggingHandle = ref(false);
 const dragStart = ref({ x: 0, y: 0 });
 const points = ref<Point[]>([
-  { id: "start", x: 0, y: 1, handleOut: { x: 0.72, y: 0.82 } },
-  { id: "end", x: 1, y: 0, handleIn: { x: 0.28, y: 0.18 } },
+  {
+    id: "start",
+    x: 0,
+    y: 1,
+    handleOut: { x: 0.72, y: fromDisplayValues(0.18) },
+  },
+  {
+    id: "end",
+    x: 1,
+    y: 0,
+    handleIn: { x: 0.28, y: fromDisplayValues(0.82) },
+  },
 ]);
 const selectedPoint = ref<Point | null>(null);
 const selectedHandle = ref<{ pointId: string; type: "in" | "out" } | null>(
@@ -566,6 +569,27 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+// Helper to convert from display values (0=bottom, 1=top) to internal SVG values (0=top, 1=bottom)
+function fromDisplayValues(displayY: number): number {
+  return 1 - displayY;
+}
+
+// Helper to convert from internal SVG values (0=top, 1=bottom) to display values (0=bottom, 1=top)
+function toDisplayValue(svgY: number): number {
+  return 1 - svgY;
+}
+
+// Load a preset curve
+function loadPreset(preset: PresetCurve) {
+  // Deep clone the preset points to avoid modifying the original
+  points.value = JSON.parse(JSON.stringify(preset.points)) as Point[];
+
+  // Select the first point
+  selectedPoint.value = points.value[0] ?? null;
+
+  log(`Loaded preset curve: ${preset.name}`);
+}
+
 // Export curve data
 function exportCurveData() {
   const data = {
@@ -637,6 +661,7 @@ defineExpose({
   handleDisplayText,
   points,
   exportCurveData,
+  loadPreset,
 });
 </script>
 

@@ -11,6 +11,7 @@ import messaging, { MessageType } from "./lib/messaging";
 import store from "./store";
 import { useColorMode } from "@vueuse/core";
 import CurveTabs from "./components/CurveTabs.vue";
+import type { PresetCurve } from "./models/PresetCurve";
 
 const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
@@ -25,6 +26,10 @@ const handleDisplayText = computed(() => {
 
 function applyClick() {
   messaging.sendMessage(MessageType.Apply);
+}
+
+function handleLoadPreset(preset: PresetCurve) {
+  canvasAreaRef.value?.loadPreset(preset);
 }
 
 store.theme = useColorMode({
@@ -103,7 +108,7 @@ onMounted(() => {
               </div>
             </div>
           </div> -->
-          <CurveTabs />
+          <CurveTabs @load-preset="handleLoadPreset" />
         </template>
       </SplitContainer>
     </main>
