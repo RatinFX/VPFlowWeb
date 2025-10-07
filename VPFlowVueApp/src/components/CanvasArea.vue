@@ -14,7 +14,7 @@ interface Point {
 const POINT_RADIUS = 2;
 const HANDLE_RADIUS = 3;
 const CURVE_SIZE = 100; // The curve coordinate system (0-100)
-const CANVAS_PADDING = 150; // Extra space around curve for handles to overshoot
+const CANVAS_PADDING = 1000; // Extra space around curve for handles to overshoot
 const CANVAS_SIZE = CURVE_SIZE + CANVAS_PADDING * 2; // Total canvas size
 
 const container = ref<HTMLDivElement | null>(null);
@@ -267,6 +267,10 @@ function addPointOnCanvas(e: MouseEvent) {
   const x = clamp(svgCoords.x);
   const y = svgCoords.y;
 
+  // Prevent creating points at the exact boundaries (start/end positions)
+  const BOUNDARY_MARGIN = 0.02; // Don't allow points too close to x=0 or x=1
+  if (x < BOUNDARY_MARGIN || x > 1 - BOUNDARY_MARGIN) return;
+
   // Prevent creating points too close to existing points
   const MIN_DISTANCE = 0.05; // Minimum distance between points
   const isTooClose = points.value.some((p) => {
@@ -512,8 +516,10 @@ defineExpose({
     @wheel.prevent="handleWheel"
   >
     <div
-      :class="`absolute w-[${CANVAS_SIZE}px] h-[${CANVAS_SIZE}px] bg-muted`"
+      class="absolute bg-muted"
       :style="{
+        width: `${CANVAS_SIZE}px`,
+        height: `${CANVAS_SIZE}px`,
         transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
         transformOrigin: '0 0',
       }"
