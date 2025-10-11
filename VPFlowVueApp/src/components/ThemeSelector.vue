@@ -12,10 +12,8 @@ const { theme } = useSettings();
 
 function onThemeUpdate() {
   // Toggle between light and dark
-  if (theme) {
-    theme.value = theme.value === "light" ? "dark" : "light";
-    messaging.sendMessage(MessageType.Settings);
-  }
+  theme.value = theme.value === "light" ? "dark" : "light";
+  messaging.sendMessage(MessageType.Settings);
 }
 </script>
 

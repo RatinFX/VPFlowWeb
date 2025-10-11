@@ -7,26 +7,20 @@ import {
 
 // Shared state - will be the same instance across all components that use this composable
 const logs = ref("");
-// theme will be set to useColorMode() result in App.vue
-// It can handle both BasicColorMode and "auto" mode
-let theme: UseColorModeReturn<BasicColorMode | "auto"> | null = null;
+// Initialize theme with useColorMode at module level
+const theme: UseColorModeReturn<BasicColorMode | "auto"> = useColorMode({
+  disableTransition: false,
+});
 const displayLogs = ref(true);
 const checkForUpdatesOnStart = ref(true);
 const ignoreLongSectionWarning = ref(false);
 const onlyCreateNecessaryKeyframes = ref(true);
 
-const a = useColorMode();
-
 export function useSettings() {
   return {
     // State
     logs,
-    get theme() {
-      return theme;
-    },
-    set theme(value: UseColorModeReturn<BasicColorMode | "auto"> | null) {
-      theme = value;
-    },
+    theme,
     displayLogs,
     checkForUpdatesOnStart,
     ignoreLongSectionWarning,

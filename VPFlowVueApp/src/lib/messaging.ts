@@ -2,14 +2,6 @@ import { useSettings } from "@/composables/useSettings";
 import { log, warn } from "./logging";
 import type { Point } from "@/models/PresetCurve";
 
-const settings = useSettings();
-const {
-  displayLogs,
-  checkForUpdatesOnStart,
-  ignoreLongSectionWarning,
-  onlyCreateNecessaryKeyframes,
-} = settings;
-
 const MessageType = {
   Apply: "Apply",
   Settings: "Settings",
@@ -21,7 +13,7 @@ export { MessageType };
 
 export interface WebMessage {
   messageType: MessageType;
-  payload: object;
+  payload: any;
 }
 
 /** Send data to backend */
@@ -29,7 +21,7 @@ export interface WebMessage {
 function sendMessage(type: MessageType, data?: Point[] | SettingsPayload) {
   const payload: WebMessage = {
     messageType: type,
-    payload: data || {},
+    payload: data || null,
   };
 
   if (type === MessageType.Apply && data && Array.isArray(data)) {
@@ -69,14 +61,13 @@ export interface SettingsPayload {
 }
 
 function getSettingsPayload(): SettingsPayload {
-  const themeValue = settings.theme?.value ?? "dark";
-  log("Current theme value:", themeValue);
+  const settings = useSettings();
   return {
-    theme: themeValue, // Access theme string value from settings
-    displayLogs: displayLogs.value,
-    checkForUpdatesOnStart: checkForUpdatesOnStart.value,
-    ignoreLongSectionWarning: ignoreLongSectionWarning.value,
-    onlyCreateNecessaryKeyframes: onlyCreateNecessaryKeyframes.value,
+    theme: settings.theme?.value ?? "auto", // Access theme string value from settings
+    displayLogs: settings.displayLogs.value,
+    checkForUpdatesOnStart: settings.checkForUpdatesOnStart.value,
+    ignoreLongSectionWarning: settings.ignoreLongSectionWarning.value,
+    onlyCreateNecessaryKeyframes: settings.onlyCreateNecessaryKeyframes.value,
   };
 }
 

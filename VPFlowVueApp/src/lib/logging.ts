@@ -1,7 +1,5 @@
 import { useSettings } from "@/composables/useSettings";
 
-const { logs } = useSettings();
-
 const MAX_LOG_LINES = 50;
 
 function format(data: any[]) {
@@ -19,6 +17,7 @@ function trim(text: string) {
 }
 
 function commit(prefix: string, data: any[]) {
+  const { logs } = useSettings();
   const entry = prefix + format(data);
   const newText = !logs.value ? entry : logs.value + "\r\n" + entry;
   logs.value = trim(newText);

@@ -8,17 +8,11 @@ import SplitContainer from "./components/SplitContainer.vue";
 import { log } from "./lib/logging";
 import CanvasArea from "./components/CanvasArea.vue";
 import messaging, { MessageType } from "./lib/messaging";
-import { useSettings } from "./composables/useSettings";
-import { useColorMode } from "@vueuse/core";
 import CurveTabs from "./components/CurveTabs.vue";
-import type { PresetCurve } from "./models/PresetCurve";
 import { useCurvePoints } from "./composables/useCurvePoints";
 
 // Use the curve points composable
 const { points } = useCurvePoints();
-
-// Use settings composable
-const settings = useSettings();
 
 const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
@@ -35,23 +29,6 @@ function applyClick() {
   // Points are now in composable, access them directly
   messaging.sendMessage(MessageType.Apply, points.value);
 }
-
-function handleLoadPreset(preset: PresetCurve) {
-  canvasAreaRef.value?.loadPreset(preset);
-}
-
-function handleApplyPreset(preset: PresetCurve) {
-  messaging.sendMessage(MessageType.Apply, preset.points);
-}
-
-// Initialize theme with useColorMode
-settings.theme = useColorMode({
-  disableTransition: false,
-  onChanged: (newMode, defaultHandler) => {
-    log("Theme changed to:", newMode);
-    defaultHandler(newMode);
-  },
-});
 
 onMounted(() => {
   // Recieve data
@@ -107,24 +84,7 @@ onMounted(() => {
         </template>
 
         <template #secondary>
-          <!-- <div class="flex flex-col h-full">
-            <div class="flex justify-center gap-2 border-cyan-500 border-2">
-              <div>library</div>
-              <div>custom</div>
-            </div>
-
-            <div
-              class="mt-2 flex flex-wrap gap-2 overflow-auto border-red-400 border-2"
-            >
-              <div v-for="_ in 100" class="w-20 h-20 border-cyan-500 border-2">
-                item
-              </div>
-            </div>
-          </div> -->
-          <CurveTabs
-            @load-preset="handleLoadPreset"
-            @apply-preset="handleApplyPreset"
-          />
+          <CurveTabs />
         </template>
       </SplitContainer>
     </main>

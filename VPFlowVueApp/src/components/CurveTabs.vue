@@ -1,52 +1,93 @@
 <script setup lang="ts">
 import type { PresetCurve } from "@/models/PresetCurve";
 import { useCurvePoints } from "@/composables/useCurvePoints";
+import messaging, { MessageType } from "@/lib/messaging";
 import Tabs from "./ui/tabs/Tabs.vue";
 import TabsContent from "./ui/tabs/TabsContent.vue";
 import TabsList from "./ui/tabs/TabsList.vue";
 import TabsTrigger from "./ui/tabs/TabsTrigger.vue";
 
-const { yFromDisplayValues } = useCurvePoints();
-
-const emit = defineEmits<{
-  loadPreset: [PresetCurve];
-  applyPreset: [PresetCurve];
-}>();
+const { yFromDisplayValues, loadPoints } = useCurvePoints();
 
 // Library preset curves - defined in display coordinates (0=bottom, 1=top)
 const libraryPresets: PresetCurve[] = [
   {
     name: "Linear",
     points: [
-      { id: "start", x: 0, y: yFromDisplayValues(0), handleOut: { x: 0.33, y: yFromDisplayValues(0.33) } },
-      { id: "end", x: 1, y: yFromDisplayValues(1), handleIn: { x: 0.67, y: yFromDisplayValues(0.67) } },
+      {
+        id: "start",
+        x: 0,
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0.33, y: yFromDisplayValues(0.33) },
+      },
+      {
+        id: "end",
+        x: 1,
+        y: yFromDisplayValues(1),
+        handleIn: { x: 0.67, y: yFromDisplayValues(0.67) },
+      },
     ],
   },
   {
     name: "Ease In",
     points: [
-      { id: "start", x: 0, y: yFromDisplayValues(0), handleOut: { x: 0.42, y: yFromDisplayValues(0) } },
-      { id: "end", x: 1, y: yFromDisplayValues(1), handleIn: { x: 1, y: yFromDisplayValues(1) } },
+      {
+        id: "start",
+        x: 0,
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0.42, y: yFromDisplayValues(0) },
+      },
+      {
+        id: "end",
+        x: 1,
+        y: yFromDisplayValues(1),
+        handleIn: { x: 1, y: yFromDisplayValues(1) },
+      },
     ],
   },
   {
     name: "Ease Out",
     points: [
-      { id: "start", x: 0, y: yFromDisplayValues(0), handleOut: { x: 0, y: yFromDisplayValues(0) } },
-      { id: "end", x: 1, y: yFromDisplayValues(1), handleIn: { x: 0.58, y: yFromDisplayValues(1) } },
+      {
+        id: "start",
+        x: 0,
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0, y: yFromDisplayValues(0) },
+      },
+      {
+        id: "end",
+        x: 1,
+        y: yFromDisplayValues(1),
+        handleIn: { x: 0.58, y: yFromDisplayValues(1) },
+      },
     ],
   },
   {
     name: "Ease In-Out",
     points: [
-      { id: "start", x: 0, y: yFromDisplayValues(0), handleOut: { x: 0.42, y: yFromDisplayValues(0) } },
-      { id: "end", x: 1, y: yFromDisplayValues(1), handleIn: { x: 0.58, y: yFromDisplayValues(1) } },
+      {
+        id: "start",
+        x: 0,
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0.42, y: yFromDisplayValues(0) },
+      },
+      {
+        id: "end",
+        x: 1,
+        y: yFromDisplayValues(1),
+        handleIn: { x: 0.58, y: yFromDisplayValues(1) },
+      },
     ],
   },
   {
     name: "Bounce",
     points: [
-      { id: "start", x: 0, y: yFromDisplayValues(0), handleOut: { x: 0.15, y: yFromDisplayValues(0.3) } },
+      {
+        id: "start",
+        x: 0,
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0.15, y: yFromDisplayValues(0.3) },
+      },
       {
         id: "point_1",
         x: 0.5,
@@ -54,13 +95,23 @@ const libraryPresets: PresetCurve[] = [
         handleIn: { x: 0.35, y: yFromDisplayValues(1.2) },
         handleOut: { x: 0.65, y: yFromDisplayValues(1.2) },
       },
-      { id: "end", x: 1, y: yFromDisplayValues(1), handleIn: { x: 0.85, y: yFromDisplayValues(0.7) } },
+      {
+        id: "end",
+        x: 1,
+        y: yFromDisplayValues(1),
+        handleIn: { x: 0.85, y: yFromDisplayValues(0.7) },
+      },
     ],
   },
   {
     name: "S-Curve",
     points: [
-      { id: "start", x: 0, y: yFromDisplayValues(0), handleOut: { x: 0.25, y: yFromDisplayValues(0) } },
+      {
+        id: "start",
+        x: 0,
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0.25, y: yFromDisplayValues(0) },
+      },
       {
         id: "point_1",
         x: 0.5,
@@ -68,13 +119,23 @@ const libraryPresets: PresetCurve[] = [
         handleIn: { x: 0.25, y: yFromDisplayValues(0.5) },
         handleOut: { x: 0.75, y: yFromDisplayValues(0.5) },
       },
-      { id: "end", x: 1, y: yFromDisplayValues(1), handleIn: { x: 0.75, y: yFromDisplayValues(1) } },
+      {
+        id: "end",
+        x: 1,
+        y: yFromDisplayValues(1),
+        handleIn: { x: 0.75, y: yFromDisplayValues(1) },
+      },
     ],
   },
   {
     name: "Elastic",
     points: [
-      { id: "start", x: 0, y: yFromDisplayValues(0), handleOut: { x: 0.2, y: yFromDisplayValues(-0.3) } },
+      {
+        id: "start",
+        x: 0,
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0.2, y: yFromDisplayValues(-0.3) },
+      },
       {
         id: "point_1",
         x: 0.6,
@@ -82,17 +143,24 @@ const libraryPresets: PresetCurve[] = [
         handleIn: { x: 0.4, y: yFromDisplayValues(1.1) },
         handleOut: { x: 0.7, y: yFromDisplayValues(1.1) },
       },
-      { id: "end", x: 1, y: yFromDisplayValues(1), handleIn: { x: 0.9, y: yFromDisplayValues(0.9) } },
+      {
+        id: "end",
+        x: 1,
+        y: yFromDisplayValues(1),
+        handleIn: { x: 0.9, y: yFromDisplayValues(0.9) },
+      },
     ],
   },
 ];
 
 function onPresetClick(preset: PresetCurve) {
-  emit("loadPreset", preset);
+  // Load preset points into the editor
+  loadPoints(preset.points);
 }
 
 function onApplyPresetClick(preset: PresetCurve) {
-  emit("applyPreset", preset);
+  // Apply preset directly to backend without loading into editor
+  messaging.sendMessage(MessageType.Apply, preset.points);
 }
 </script>
 
