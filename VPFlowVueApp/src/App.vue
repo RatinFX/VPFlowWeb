@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import CanvasArea from "./components/CanvasArea.vue";
 import CurveTabs from "./components/CurveTabs.vue";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
+import ShortcutsInfo from "./components/ShortcutsInfo.vue";
 import SplitContainer from "./components/SplitContainer.vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
 import VPFMenuBar from "./components/VPFMenuBar.vue";
@@ -46,6 +47,8 @@ onMounted(() => {
     </header>
 
     <main class="flex-1 flex min-h-0">
+      <ShortcutsInfo />
+
       <SplitContainer>
         <template #primary>
           <div class="flex flex-col h-full">

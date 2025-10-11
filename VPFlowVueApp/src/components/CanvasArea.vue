@@ -1082,29 +1082,13 @@ defineExpose({
       </div>
     </div>
 
-    <!-- Reset button and shortcuts info -->
-    <div class="absolute top-2 left-2 flex flex-col gap-1 items-start">
-      <button
-        @click="resetView"
-        class="px-2 py-1 bg-muted/20 hover:bg-muted/40 rounded text-sm"
-      >
-        Reset View (R)
-      </button>
-      <div class="text-xs text-muted-foreground bg-muted/10 px-2 py-1 rounded">
-        Ctrl+Click to add point
-      </div>
-      <div class="text-xs text-muted-foreground bg-muted/10 px-2 py-1 rounded">
-        Ctrl+E to export
-      </div>
-    </div>
-
     <!-- Context menu
      TODO: replace context menu with:
      - https://www.shadcn-vue.com/docs/components/context-menu
      -->
     <div
       v-if="contextMenuVisible"
-      class="absolute bg-background border border-border rounded shadow-lg z-50"
+      class="absolute bg-background border border-border rounded shadow-lg z-10"
       :style="{ left: `${contextMenuPos.x}px`, top: `${contextMenuPos.y}px` }"
     >
       <button
