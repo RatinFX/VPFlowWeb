@@ -5,6 +5,9 @@ import { useLogging } from "@/composables/useLogging";
 import type { Point, PresetCurve } from "@/models/PresetCurve";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
+// Type for coordinate points (used for control points and calculations)
+type Coordinate = { x: number; y: number };
+
 // Use composables
 const { log } = useLogging();
 const {
@@ -408,8 +411,168 @@ function startCanvasDrag(e: MouseEvent) {
 }
 
 // Add point on canvas click with Ctrl OR move nearest handle on drag
+/**
+ * Calculate point on cubic Bezier curve at parameter t
+ */
+function evaluateBezierCurve(
+  p0: Coordinate,
+  p1: Coordinate,
+  p2: Coordinate,
+  p3: Coordinate,
+  t: number
+): Coordinate {
+  const u = t;
+  const v = 1 - t;
+  const v2 = v * v;
+  const v3 = v2 * v;
+  const u2 = u * u;
+  const u3 = u2 * u;
+
+  return {
+    x: v3 * p0.x + 3 * v2 * u * p1.x + 3 * v * u2 * p2.x + u3 * p3.x,
+    y: v3 * p0.y + 3 * v2 * u * p1.y + 3 * v * u2 * p2.y + u3 * p3.y,
+  };
+}
+
+/**
+ * Find the closest curve segment to a given point
+ */
+function findClosestSegment(x: number, y: number): number {
+  let closestSegmentIdx = 0;
+  let minDistance = Infinity;
+
+  for (let i = 0; i < points.value.length - 1; i++) {
+    const p0 = points.value[i]!;
+    const p3 = points.value[i + 1]!;
+    const p1 = p0.handleOut || p0;
+    const p2 = p3.handleIn || p3;
+
+    // Sample the bezier curve and find minimum distance
+    const samples = 20;
+    for (let t = 0; t <= samples; t++) {
+      const u = t / samples;
+      const curvePoint = evaluateBezierCurve(p0, p1, p2, p3, u);
+
+      const dx = curvePoint.x - x;
+      const dy = curvePoint.y - y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestSegmentIdx = i;
+      }
+    }
+  }
+
+  return closestSegmentIdx;
+}
+
+/**
+ * Find the parameter t on a curve segment closest to a given point
+ */
+function findParameterOnSegment(
+  p0: Coordinate,
+  p1: Coordinate,
+  p2: Coordinate,
+  p3: Coordinate,
+  x: number,
+  y: number
+): number {
+  let bestT = 0.5;
+  let minDist = Infinity;
+  const samples = 20;
+
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples;
+    const curvePoint = evaluateBezierCurve(p0, p1, p2, p3, t);
+
+    const dx = curvePoint.x - x;
+    const dy = curvePoint.y - y;
+    const dist = dx * dx + dy * dy;
+
+    if (dist < minDist) {
+      minDist = dist;
+      bestT = t;
+    }
+  }
+
+  return bestT;
+}
+
+/**
+ * Calculate the tangent (derivative) of a Bezier curve at parameter t
+ * Formula: B'(t) = 3(1-t)²(P1-P0) + 6(1-t)t(P2-P1) + 3t²(P3-P2)
+ */
+function calculateBezierTangent(
+  p0: Coordinate,
+  p1: Coordinate,
+  p2: Coordinate,
+  p3: Coordinate,
+  t: number
+): Coordinate {
+  const mt = 1 - t;
+  const mt2 = mt * mt;
+  const t2 = t * t;
+
+  return {
+    x:
+      3 * mt2 * (p1.x - p0.x) +
+      6 * mt * t * (p2.x - p1.x) +
+      3 * t2 * (p3.x - p2.x),
+    y:
+      3 * mt2 * (p1.y - p0.y) +
+      6 * mt * t * (p2.y - p1.y) +
+      3 * t2 * (p3.y - p2.y),
+  };
+}
+
+/**
+ * Calculate handles for a new point based on curve tangent
+ */
+function calculateHandlesFromTangent(
+  x: number,
+  y: number,
+  tangent: Coordinate,
+  segmentLength: number
+): { handleIn: Coordinate; handleOut: Coordinate } {
+  // Normalize the tangent vector
+  const tangentLength = Math.sqrt(
+    tangent.x * tangent.x + tangent.y * tangent.y
+  );
+  const normTangentX = tangentLength > 0 ? tangent.x / tangentLength : 1;
+  const normTangentY = tangentLength > 0 ? tangent.y / tangentLength : 0;
+
+  // Calculate handle offset distance (proportional to segment length)
+  const handleLength = Math.min(0.15, segmentLength * 0.3);
+
+  return {
+    handleIn: {
+      x: x - normTangentX * handleLength,
+      y: y - normTangentY * handleLength,
+    },
+    handleOut: {
+      x: x + normTangentX * handleLength,
+      y: y + normTangentY * handleLength,
+    },
+  };
+}
+
+/**
+ * Check if a point is too close to existing points
+ */
+function isPointTooCloseToExisting(x: number, y: number): boolean {
+  const MIN_DISTANCE = 0.05;
+  return points.value.some((p) => {
+    const dx = p.x - x;
+    const dy = p.y - y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < MIN_DISTANCE;
+  });
+}
+
+// Add point on canvas click with Ctrl
 function addPointOnCanvas(e: MouseEvent) {
-  // Original Ctrl+Click to add point behavior
+  // Only respond to Ctrl+Click (no Alt, no dragging)
   if (
     e.button !== 0 ||
     !e.ctrlKey ||
@@ -425,42 +588,47 @@ function addPointOnCanvas(e: MouseEvent) {
   const x = clamp(svgCoords.x);
   const y = svgCoords.y;
 
-  // Prevent creating points at the exact boundaries (start/end positions)
-  const BOUNDARY_MARGIN = 0.02; // Don't allow points too close to x=0 or x=1
+  // Prevent creating points at the boundaries
+  const BOUNDARY_MARGIN = 0.02;
   if (x < BOUNDARY_MARGIN || x > 1 - BOUNDARY_MARGIN) return;
 
   // Prevent creating points too close to existing points
-  const MIN_DISTANCE = 0.05; // Minimum distance between points
-  const isTooClose = points.value.some((p) => {
-    const dx = p.x - x;
-    const dy = p.y - y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < MIN_DISTANCE;
-  });
+  if (isPointTooCloseToExisting(x, y)) return;
 
-  if (isTooClose) return;
+  // Find which curve segment this point should be inserted into
+  const closestSegmentIdx = findClosestSegment(x, y);
+  const insertIdx = closestSegmentIdx + 1;
 
-  // Find insertion position based on x coordinate
-  let insertIdx = points.value.findIndex((p) => p.x > x);
-  if (insertIdx === -1) insertIdx = points.value.length;
-
-  // Calculate appropriate handle positions to maintain curve smoothness
-  const prevPoint = points.value[insertIdx - 1];
+  // Get the segment endpoints
+  const prevPoint = points.value[closestSegmentIdx];
   const nextPoint = points.value[insertIdx];
+  if (!prevPoint || !nextPoint) return;
 
-  const handleOffset = 0.1;
+  // Get the control points for the bezier segment
+  const p0 = prevPoint;
+  const p3 = nextPoint;
+  const p1 = p0.handleOut || p0;
+  const p2 = p3.handleIn || p3;
 
-  // Create new point with handles that blend into the curve
+  // Find the exact position on the curve and calculate tangent
+  const t = findParameterOnSegment(p0, p1, p2, p3, x, y);
+  const tangent = calculateBezierTangent(p0, p1, p2, p3, t);
+
+  // Calculate segment length for proportional handle sizing
+  const segmentLength = Math.sqrt(
+    Math.pow(p3.x - p0.x, 2) + Math.pow(p3.y - p0.y, 2)
+  );
+
+  // Create handles aligned with the curve's tangent
+  const handles = calculateHandlesFromTangent(x, y, tangent, segmentLength);
+
+  // Create and insert the new point
   const newPoint: Point = {
     id: `point_${Date.now()}`,
     x,
     y,
-    handleIn: prevPoint
-      ? { x: Math.max(prevPoint.x, x - handleOffset), y }
-      : { x: x - handleOffset, y },
-    handleOut: nextPoint
-      ? { x: Math.min(nextPoint.x, x + handleOffset), y }
-      : { x: x + handleOffset, y },
+    handleIn: handles.handleIn,
+    handleOut: handles.handleOut,
   };
 
   points.value.splice(insertIdx, 0, newPoint);
@@ -468,7 +636,7 @@ function addPointOnCanvas(e: MouseEvent) {
   log(
     `Added new point: ${newPoint.id} at (${x.toFixed(2)}, ${(1 - y).toFixed(
       2
-    )})`
+    )}) in segment ${closestSegmentIdx}`
   );
 }
 
@@ -752,7 +920,6 @@ defineExpose({
           width="100%"
           height="100%"
           class="stroke-foreground"
-          :class="{ 'cursor-crosshair': false }"
           :viewBox="viewBox"
           preserveAspectRatio="xMidYMid meet"
           @click.ctrl="addPointOnCanvas"
@@ -866,7 +1033,10 @@ defineExpose({
                   :cx="point.handleOut.x * CURVE_SIZE"
                   :cy="point.handleOut.y * CURVE_SIZE"
                   :r="HANDLE_RADIUS"
-                  class="fill-blue-500 stroke-foreground stroke-1 cursor-move"
+                  :class="[
+                    'fill-blue-500 stroke-foreground stroke-1',
+                    isDraggingHandle ? 'cursor-grabbing' : 'cursor-grab',
+                  ]"
                   @mousedown="startHandleDrag($event, point, 'out')"
                 />
 
@@ -876,7 +1046,10 @@ defineExpose({
                   :cx="point.handleIn.x * CURVE_SIZE"
                   :cy="point.handleIn.y * CURVE_SIZE"
                   :r="HANDLE_RADIUS"
-                  class="fill-green-500 stroke-foreground stroke-1 cursor-move"
+                  :class="[
+                    'fill-green-500 stroke-foreground stroke-1',
+                    isDraggingHandle ? 'cursor-grabbing' : 'cursor-grab',
+                  ]"
                   @mousedown="startHandleDrag($event, point, 'in')"
                 />
               </g>
@@ -893,8 +1066,10 @@ defineExpose({
             :class="[
               'stroke-foreground stroke-2',
               point.id === 'start' || point.id === 'end'
-                ? 'cursor-pointer'
-                : 'cursor-move',
+                ? 'cursor-default'
+                : isDraggingPoint
+                ? 'cursor-grabbing'
+                : 'cursor-grab',
               selectedPoint?.id === point.id
                 ? 'fill-primary'
                 : 'fill-background',
@@ -937,7 +1112,7 @@ defineExpose({
         @click="deleteSelectedPoint"
         class="w-full px-4 py-2 text-left hover:bg-muted text-sm"
       >
-        Delete
+        Delete [x]
       </button>
       <div v-else class="px-4 py-2 text-sm text-muted-foreground">
         cannot edit
