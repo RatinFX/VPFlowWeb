@@ -2,6 +2,7 @@
 import { log } from "@/lib/logging";
 import type { Point, PresetCurve } from "@/models/PresetCurve";
 import { useCurvePoints } from "@/composables/useCurvePoints";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 // Use the curve points composable
@@ -588,110 +589,56 @@ function handleResize(entries: ResizeObserverEntry[]) {
   }
 }
 
-// Keyboard shortcuts
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === "r" || e.key === "R") {
-    resetView();
-  } else if ((e.key === "Delete" || e.key === "x") && selectedPoint.value) {
-    deleteSelectedPoint();
-  } else if ((e.ctrlKey || e.metaKey) && e.key === "e") {
-    e.preventDefault();
-    exportCurveData();
-  } else if (
-    !e.ctrlKey &&
-    !e.metaKey &&
-    !e.altKey &&
-    (e.key.toLowerCase() === "q" || e.key.toLowerCase() === "e")
-  ) {
-    // Q/E navigation between points
-    if (!selectedPoint.value || points.value.length === 0) return;
-
-    const currentIdx = points.value.findIndex(
-      (p) => p.id === selectedPoint.value?.id
-    );
-    if (currentIdx === -1) return;
-
-    if (e.key.toLowerCase() === "q") {
-      // Select previous point
-      const prevIdx = currentIdx - 1;
-      if (prevIdx >= 0) {
-        selectedPoint.value = points.value[prevIdx]!;
+// Setup keyboard shortcuts using composable
+useKeyboardShortcuts({
+  selectedPoint,
+  points,
+  handlers: {
+    onResetView: () => resetView(),
+    onDeletePoint: () => deleteSelectedPoint(),
+    onExportData: () => exportCurveData(),
+    onNavigatePrevious: () => {
+      const currentIdx = points.value.findIndex(
+        (p) => p.id === selectedPoint.value?.id
+      );
+      if (currentIdx > 0) {
+        selectedPoint.value = points.value[currentIdx - 1]!;
         log(`Selected previous point: ${selectedPoint.value.id}`);
-        e.preventDefault();
       }
-    } else if (e.key.toLowerCase() === "e") {
-      // Select next point
-      const nextIdx = currentIdx + 1;
-      if (nextIdx < points.value.length) {
-        selectedPoint.value = points.value[nextIdx]!;
+    },
+    onNavigateNext: () => {
+      const currentIdx = points.value.findIndex(
+        (p) => p.id === selectedPoint.value?.id
+      );
+      if (currentIdx < points.value.length - 1) {
+        selectedPoint.value = points.value[currentIdx + 1]!;
         log(`Selected next point: ${selectedPoint.value.id}`);
-        e.preventDefault();
       }
-    }
-  } else if (selectedPoint.value && !e.ctrlKey && !e.metaKey && !e.altKey) {
-    // WASD movement for selected point
-    // Prevent moving default points
-    if (
-      selectedPoint.value.id === "start" ||
-      selectedPoint.value.id === "end"
-    ) {
-      return;
-    }
+    },
+    onMovePoint: (deltaX: number, deltaY: number, _step: number) => {
+      if (!selectedPoint.value) return;
 
-    const smallStep = 0.01; // Small movement step
-    const bigStep = 0.05; // Big movement step (with Shift)
-    const step = e.shiftKey ? bigStep : smallStep;
+      // Update point position
+      const newX = clamp(selectedPoint.value.x + deltaX);
+      const actualDeltaX = newX - selectedPoint.value.x;
+      const newY = selectedPoint.value.y + deltaY;
 
-    let deltaX = 0;
-    let deltaY = 0;
+      // Move handles with the point
+      if (selectedPoint.value.handleIn) {
+        selectedPoint.value.handleIn.x += actualDeltaX;
+        selectedPoint.value.handleIn.y += deltaY;
+      }
+      if (selectedPoint.value.handleOut) {
+        selectedPoint.value.handleOut.x += actualDeltaX;
+        selectedPoint.value.handleOut.y += deltaY;
+      }
 
-    switch (e.key.toLowerCase()) {
-      case "w":
-      case "arrowup":
-        deltaY = -step; // Move up (decrease Y in SVG coords, which moves down visually, but we invert)
-        e.preventDefault();
-        break;
-      case "s":
-      case "arrowdown":
-        deltaY = step; // Move down
-        e.preventDefault();
-        break;
-      case "a":
-      case "arrowleft":
-        deltaX = -step; // Move left
-        e.preventDefault();
-        break;
-      case "d":
-      case "arrowright":
-        deltaX = step; // Move right
-        e.preventDefault();
-        break;
-      default:
-        return; // Not a movement key, do nothing
-    }
-
-    log(`Key pressed: ${e.key}, moving by step: ${step}`);
-
-    // Update point position
-    const newX = clamp(selectedPoint.value.x + deltaX);
-    const actualDeltaX = newX - selectedPoint.value.x;
-    const newY = selectedPoint.value.y + deltaY;
-
-    // Move handles with the point
-    if (selectedPoint.value.handleIn) {
-      selectedPoint.value.handleIn.x += actualDeltaX;
-      selectedPoint.value.handleIn.y += deltaY;
-    }
-    if (selectedPoint.value.handleOut) {
-      selectedPoint.value.handleOut.x += actualDeltaX;
-      selectedPoint.value.handleOut.y += deltaY;
-    }
-
-    // Update point position
-    selectedPoint.value.x = newX;
-    selectedPoint.value.y = newY;
-  }
-}
+      // Update point position
+      selectedPoint.value.x = newX;
+      selectedPoint.value.y = newY;
+    },
+  },
+});
 
 // Load a preset curve
 function loadPreset(preset: PresetCurve) {
@@ -741,7 +688,7 @@ function exportCurveData() {
 
 // Cleanup
 function cleanup() {
-  window.removeEventListener("keydown", handleKeydown);
+  // Keyboard shortcuts cleanup is handled by useKeyboardShortcuts composable
   window.removeEventListener("mousemove", onDrag);
   window.removeEventListener("mouseup", stopDrag);
   window.removeEventListener("mousemove", onPointDrag);
@@ -751,7 +698,7 @@ function cleanup() {
 }
 
 onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
+  // Keyboard shortcuts setup is handled by useKeyboardShortcuts composable
   // Select first point by default
   selectedPoint.value = points.value[0] ?? null;
   // Center view on mount
