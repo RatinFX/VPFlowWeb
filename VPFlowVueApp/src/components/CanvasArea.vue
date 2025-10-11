@@ -899,13 +899,13 @@ defineExpose({
 <template>
   <div
     ref="container"
-    class="relative w-full h-full overflow-hidden select-none"
+    class="relative bg-muted min-h-10 w-full h-full overflow-hidden select-none"
     :class="{ 'cursor-grabbing': isDragging, 'cursor-default': !isDragging }"
     @mousedown="startDrag"
     @wheel.prevent="handleWheel"
   >
     <div
-      class="absolute bg-muted"
+      class="absolute"
       :style="{
         width: `${CANVAS_SIZE}px`,
         height: `${CANVAS_SIZE}px`,

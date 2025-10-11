@@ -35,7 +35,7 @@ onUnmounted(() => {
     <!-- Question mark icon button -->
     <div @mouseenter="showInfo" @mouseleave="hideInfo" class="relative flex">
       <button
-        class="w-8 h-8 flex items-center justify-center bg-muted/20 hover:bg-muted/40 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+        class="w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
       >
         <Icon icon="radix-icons:question-mark-circled" class="w-5 h-5" />
       </button>
@@ -51,15 +51,13 @@ onUnmounted(() => {
           v-if="isInfoVisible"
           @mouseenter="showInfo"
           @mouseleave="hideInfo"
-          class="min-h-40 bg-background/90 backdrop-blur-sm border border-border rounded-lg w-60"
+          class="w-54 max-h-[calc(100vh-3.25rem-1rem)] bg-background/90 backdrop-blur-sm border border-border rounded-lg"
         >
           <div class="px-4 py-2 space-y-1 text-xs">
             <h3 class="text-sm font-semibold">Keyboard shortcuts</h3>
 
             <div class="flex justify-between">
-              <span class="text-muted-foreground">
-                Select prev / next point
-              </span>
+              <span class="text-muted-foreground"> Prev / next point </span>
               <span>
                 <Kbd> Q </Kbd>
                 <span class="mx-1 text-muted-foreground">/</span>
@@ -71,7 +69,7 @@ onUnmounted(() => {
               <span class="text-muted-foreground">Move point</span>
               <span>
                 <Kbd> WASD </Kbd>
-                <span class="mx-1 text-muted-foreground">or</span>
+                <span class="mx-1 text-muted-foreground">,</span>
                 <Kbd> Arrows </Kbd>
               </span>
             </div>

@@ -51,18 +51,18 @@ onMounted(() => {
 
       <SplitContainer>
         <template #primary>
-          <div class="flex flex-col h-full">
+          <div class="flex flex-col h-full gap-2">
             <div class="flex flex-1 justify-center">
               <CanvasArea ref="canvasAreaRef" />
             </div>
 
-            <div class="mt-2 flex">
+            <div class="flex">
               <Button variant="secondary" class="w-full">
                 {{ handleDisplayText }}
               </Button>
             </div>
 
-            <div class="mt-2 flex gap-2">
+            <div class="flex gap-2">
               <VPFDropdownMenu
                 buttonClasses="flex-1"
                 :items="['S_Shape', 'S_BlurMoCurves']"
@@ -73,7 +73,7 @@ onMounted(() => {
               />
             </div>
 
-            <div class="mt-2 flex gap-2">
+            <div class="flex gap-2">
               <!-- TODO: change into a toggle icon -->
               <VPFDropdownMenu buttonClasses="flex-1" :items="itemsDisplayed" />
               <Button class="flex-1 min-w-2/3" @click="sendApply(points)"
