@@ -3,7 +3,7 @@ import type { Point } from "@/models/PresetCurve";
 
 // Helper to convert from display values (0=bottom, 1=top) to internal SVG values (0=top, 1=bottom)
 const yFromDisplayValues = (displayY: number): number => {
-  return 1 - displayY;
+  return parseFloat((1 - displayY).toFixed(4));
 };
 
 // Shared state - will be the same instance across all components that use this composable
@@ -67,7 +67,7 @@ export function useCurvePoints() {
 
   // Helper to convert from internal SVG values (0=top, 1=bottom) to display values (0=bottom, 1=top)
   const yToDisplayValue = (svgY: number): number => {
-    return 1 - svgY;
+    return parseFloat((1 - svgY).toFixed(4));
   };
 
   return {
