@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useLogging } from "@/composables/useLogging";
-import { onBeforeUnmount, onMounted, ref, nextTick } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const { log } = useLogging();
 

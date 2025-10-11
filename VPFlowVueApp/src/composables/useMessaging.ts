@@ -1,6 +1,6 @@
-import { useSettings } from "./useSettings";
-import { useLogging } from "./useLogging";
 import type { Point } from "@/models/PresetCurve";
+import { useLogging } from "./useLogging";
+import { useSettings } from "./useSettings";
 
 // Message types
 export const MessageType = {

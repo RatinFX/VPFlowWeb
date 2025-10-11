@@ -1,9 +1,9 @@
-import { ref } from "vue";
 import {
-  type UseColorModeReturn,
   type BasicColorMode,
   useColorMode,
+  type UseColorModeReturn,
 } from "@vueuse/core";
+import { ref } from "vue";
 
 // Shared state - will be the same instance across all components that use this composable
 const logs = ref("");

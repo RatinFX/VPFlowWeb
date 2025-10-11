@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import VPFMenuBar from "./components/VPFMenuBar.vue";
-import Button from "./components/ui/button/Button.vue";
 import { computed, onMounted, ref } from "vue";
-import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
+import CanvasArea from "./components/CanvasArea.vue";
+import CurveTabs from "./components/CurveTabs.vue";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
 import SplitContainer from "./components/SplitContainer.vue";
-import { useLogging } from "./composables/useLogging";
-import CanvasArea from "./components/CanvasArea.vue";
-import { useMessaging } from "./composables/useMessaging";
-import CurveTabs from "./components/CurveTabs.vue";
+import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
+import VPFMenuBar from "./components/VPFMenuBar.vue";
+import Button from "./components/ui/button/Button.vue";
 import { useCurvePoints } from "./composables/useCurvePoints";
+import { useLogging } from "./composables/useLogging";
+import { useMessaging } from "./composables/useMessaging";
 
 // Use composables
 const { points } = useCurvePoints();

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { PresetCurve } from "@/models/PresetCurve";
 import { useCurvePoints } from "@/composables/useCurvePoints";
-import { useMessaging } from "@/composables/useMessaging";
 import { useLogging } from "@/composables/useLogging";
+import { useMessaging } from "@/composables/useMessaging";
+import type { PresetCurve } from "@/models/PresetCurve";
 import Tabs from "./ui/tabs/Tabs.vue";
 import TabsContent from "./ui/tabs/TabsContent.vue";
 import TabsList from "./ui/tabs/TabsList.vue";

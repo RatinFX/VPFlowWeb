@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
 import {
   MenubarContent,
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { useSettings } from "@/composables/useSettings";
 import { useMessaging } from "@/composables/useMessaging";
+import { useSettings } from "@/composables/useSettings";
+import { Icon } from "@iconify/vue";
 
 const { theme } = useSettings();
 const { sendSettings } = useMessaging();

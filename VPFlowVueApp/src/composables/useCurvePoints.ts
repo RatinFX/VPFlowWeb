@@ -1,5 +1,5 @@
-import { ref } from "vue";
 import type { Point } from "@/models/PresetCurve";
+import { ref } from "vue";
 
 // Helper to convert from display values (0=bottom, 1=top) to internal SVG values (0=top, 1=bottom)
 const yFromDisplayValues = (displayY: number): number => {

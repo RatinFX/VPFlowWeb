@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useSettings } from "@/composables/useSettings";
-import Textarea from "./ui/textarea/Textarea.vue";
 import { nextTick, ref, watch } from "vue";
+import Textarea from "./ui/textarea/Textarea.vue";
 
 const { logs, displayLogs } = useSettings();
 

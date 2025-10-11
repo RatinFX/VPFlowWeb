@@ -7,13 +7,13 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
-import type { Menu, MenuItem } from "@/models/Menu";
-import { useSettings } from "@/composables/useSettings";
-import { onMounted, ref } from "vue";
 import { useLogging } from "@/composables/useLogging";
-import ThemeSelector from "./ThemeSelector.vue";
 import { useMessaging, type SettingsPayload } from "@/composables/useMessaging";
+import { useSettings } from "@/composables/useSettings";
+import type { Menu, MenuItem } from "@/models/Menu";
+import { onMounted, ref } from "vue";
+import ThemeSelector from "./ThemeSelector.vue";
+import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
 
 const {
   theme,

@@ -1,5 +1,5 @@
-import { onMounted, onUnmounted, type Ref } from "vue";
 import type { Point } from "@/models/PresetCurve";
+import { onMounted, onUnmounted, type Ref } from "vue";
 import { useLogging } from "./useLogging";
 
 export interface KeyboardShortcutHandlers {

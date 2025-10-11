@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { ref, watch, type PropType } from "vue";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,6 +7,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ref, watch, type PropType } from "vue";
 
 const props = defineProps({
   items: {

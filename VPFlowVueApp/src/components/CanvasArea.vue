@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useLogging } from "@/composables/useLogging";
-import type { Point, PresetCurve } from "@/models/PresetCurve";
 import { useCurvePoints } from "@/composables/useCurvePoints";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import { useLogging } from "@/composables/useLogging";
+import type { Point, PresetCurve } from "@/models/PresetCurve";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 // Use composables
