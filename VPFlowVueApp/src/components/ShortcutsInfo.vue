@@ -2,6 +2,7 @@
 import { Icon } from "@iconify/vue";
 import { onMounted, onUnmounted, ref } from "vue";
 import Kbd from "./ui/kbd/Kbd.vue";
+import KbdGroup from "./ui/kbd/KbdGroup.vue";
 import ScrollArea from "./ui/scroll-area/ScrollArea.vue";
 import Separator from "./ui/separator/Separator.vue";
 
@@ -54,24 +55,56 @@ onUnmounted(() => {
           class="w-54 max-h-[calc(100vh-3.25rem-1rem)] bg-background/90 backdrop-blur-sm border border-border rounded-lg"
         >
           <div class="px-4 py-2 space-y-1 text-xs">
-            <h3 class="text-sm font-semibold">Keyboard shortcuts</h3>
+            <h3 class="text-sm font-semibold">How to</h3>
+
+            <div class="flex justify-between">
+              <span class="text-muted-foreground"> Close this panel </span>
+              <Kbd> Esc </Kbd>
+            </div>
+
+            <Separator />
+
+            <div class="flex justify-between">
+              <span class="text-muted-foreground"> Move view </span>
+              <Kbd>
+                Mid click
+                <Icon icon="qlementine-icons:mouse-middle-button-16" />
+              </Kbd>
+            </div>
+
+            <div class="flex justify-between">
+              <span class="text-muted-foreground"> Zoom </span>
+              <Kbd>
+                Scroll
+                <Icon icon="qlementine-icons:mouse-middle-button-16" />
+              </Kbd>
+            </div>
+
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Reset view</span>
+              <KbdGroup>
+                <Kbd> R </Kbd>
+              </KbdGroup>
+            </div>
+
+            <Separator />
 
             <div class="flex justify-between">
               <span class="text-muted-foreground"> Prev / next point </span>
-              <span>
+              <KbdGroup>
                 <Kbd> Q </Kbd>
-                <span class="mx-1 text-muted-foreground">/</span>
+                <span> / </span>
                 <Kbd> E </Kbd>
-              </span>
+              </KbdGroup>
             </div>
 
             <div class="flex justify-between">
               <span class="text-muted-foreground">Move point</span>
-              <span>
+              <KbdGroup>
                 <Kbd> WASD </Kbd>
-                <span class="mx-1 text-muted-foreground">,</span>
+                <span> , </span>
                 <Kbd> Arrows </Kbd>
-              </span>
+              </KbdGroup>
             </div>
 
             <div class="flex justify-between">
@@ -83,28 +116,29 @@ onUnmounted(() => {
 
             <div class="flex justify-between">
               <span class="text-muted-foreground">Add point</span>
-              <Kbd> Ctrl + Click </Kbd>
+              <KbdGroup>
+                <Kbd> Ctrl </Kbd>
+                <span> + </span>
+                <Kbd> Click </Kbd>
+              </KbdGroup>
             </div>
 
             <div class="flex justify-between">
               <span class="text-muted-foreground">Delete point</span>
-              <span>
+              <KbdGroup>
                 <Kbd> Del </Kbd>
-                <span class="mx-1 text-muted-foreground">or</span>
+                <span> or </span>
                 <Kbd> X </Kbd>
-              </span>
-            </div>
-
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">Reset view</span>
-              <Kbd class="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">
-                R
-              </Kbd>
+              </KbdGroup>
             </div>
 
             <div class="flex justify-between">
               <span class="text-muted-foreground">Export data</span>
-              <Kbd> Ctrl + E </Kbd>
+              <KbdGroup>
+                <Kbd> Ctrl </Kbd>
+                <span> + </span>
+                <Kbd> E </Kbd>
+              </KbdGroup>
             </div>
           </div>
         </ScrollArea>

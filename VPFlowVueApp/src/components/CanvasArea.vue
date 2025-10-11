@@ -19,8 +19,10 @@ const {
 } = useCurvePoints();
 
 // Constants
-const POINT_RADIUS = 2;
-const HANDLE_RADIUS = 2;
+const POINT_RADIUS = 4;
+const POINT_COLOR = "#fdbf28";
+const HANDLE_RADIUS = 3;
+const HANDLE_LINE_WIDTH = 1;
 const CURVE_SIZE = 100; // The curve coordinate system (0-100)
 const CANVAS_PADDING = 1000; // Extra space around curve for handles to overshoot
 const CANVAS_SIZE = CURVE_SIZE + CANVAS_PADDING * 2; // Total canvas size
@@ -933,7 +935,7 @@ defineExpose({
             :height="CURVE_SIZE"
             fill="none"
             stroke="currentColor"
-            stroke-width="1"
+            stroke-width="0.5"
           />
 
           <!-- Grid lines -->
@@ -970,7 +972,7 @@ defineExpose({
               :x2="CURVE_SIZE / 2"
               :y2="CURVE_SIZE"
               stroke="currentColor"
-              stroke-width="1"
+              stroke-width="0.5"
             />
             <line
               x1="0"
@@ -978,7 +980,7 @@ defineExpose({
               :x2="CURVE_SIZE"
               :y2="CURVE_SIZE / 2"
               stroke="currentColor"
-              stroke-width="1"
+              stroke-width="0.5"
             />
           </g>
 
@@ -987,7 +989,7 @@ defineExpose({
             :d="curvePath"
             fill="none"
             stroke="currentColor"
-            stroke-width="1.5"
+            stroke-width="2"
           />
 
           <!-- Handle lines and points for selected point and its neighbor -->
@@ -1011,7 +1013,7 @@ defineExpose({
                   :x2="point.handleOut.x * CURVE_SIZE"
                   :y2="point.handleOut.y * CURVE_SIZE"
                   stroke="currentColor"
-                  stroke-width="0.5"
+                  :stroke-width="HANDLE_LINE_WIDTH"
                   opacity="0.5"
                 />
 
@@ -1023,7 +1025,7 @@ defineExpose({
                   :x2="point.handleIn.x * CURVE_SIZE"
                   :y2="point.handleIn.y * CURVE_SIZE"
                   stroke="currentColor"
-                  stroke-width="0.5"
+                  :stroke-width="HANDLE_LINE_WIDTH"
                   opacity="0.5"
                 />
 
@@ -1033,8 +1035,9 @@ defineExpose({
                   :cx="point.handleOut.x * CURVE_SIZE"
                   :cy="point.handleOut.y * CURVE_SIZE"
                   :r="HANDLE_RADIUS"
+                  stroke="none"
                   :class="[
-                    'fill-blue-500 stroke-foreground stroke-1',
+                    'fill-blue-500',
                     isDraggingHandle ? 'cursor-grabbing' : 'cursor-grab',
                   ]"
                   @mousedown="startHandleDrag($event, point, 'out')"
@@ -1046,8 +1049,9 @@ defineExpose({
                   :cx="point.handleIn.x * CURVE_SIZE"
                   :cy="point.handleIn.y * CURVE_SIZE"
                   :r="HANDLE_RADIUS"
+                  stroke="none"
                   :class="[
-                    'fill-green-500 stroke-foreground stroke-1',
+                    'fill-green-500',
                     isDraggingHandle ? 'cursor-grabbing' : 'cursor-grab',
                   ]"
                   @mousedown="startHandleDrag($event, point, 'in')"
@@ -1063,16 +1067,17 @@ defineExpose({
             :cx="point.x * CURVE_SIZE"
             :cy="point.y * CURVE_SIZE"
             :r="POINT_RADIUS"
+            stroke="none"
+            :fill="
+              selectedPoint?.id === point.id ? POINT_COLOR : 'var(--primary)'
+            "
             :class="[
-              'stroke-foreground stroke-2',
+              // 'stroke-foreground stroke-2',
               point.id === 'start' || point.id === 'end'
                 ? 'cursor-default'
                 : isDraggingPoint
                 ? 'cursor-grabbing'
                 : 'cursor-grab',
-              selectedPoint?.id === point.id
-                ? 'fill-primary'
-                : 'fill-background',
             ]"
             @mousedown="startPointDrag($event, point)"
             @click="selectPoint($event, point)"
