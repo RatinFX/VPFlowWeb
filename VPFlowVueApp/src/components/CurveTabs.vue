@@ -175,9 +175,9 @@ function onApplyPresetClick(preset: PresetCurve) {
       <TabsTrigger value="library">Library</TabsTrigger>
       <TabsTrigger value="custom">Custom</TabsTrigger>
     </TabsList>
-    <div class="overflow-auto border-blue-400 border-1 rounded-l">
+    <div class="overflow-auto h-full rounded-l">
       <TabsContent value="library">
-        <div class="flex flex-wrap gap-2 p-2">
+        <div class="flex flex-wrap gap-2">
           <button
             v-for="preset in libraryPresets"
             :key="preset.name"
@@ -190,7 +190,7 @@ function onApplyPresetClick(preset: PresetCurve) {
         </div>
       </TabsContent>
       <TabsContent value="custom">
-        <div class="flex flex-wrap gap-2 p-2">
+        <div class="flex flex-wrap gap-2">
           <div
             v-for="i in 10"
             :key="i"
