@@ -21,9 +21,10 @@ const {
   checkForUpdatesOnStart,
   ignoreLongSectionWarning,
   onlyCreateNecessaryKeyframes,
+  setSetting,
 } = useSettings();
 
-const { sendSettings, onReceiveSettings } = useMessaging();
+const { onReceiveSettings } = useMessaging();
 
 const _separator: MenuItem = { isSeparator: true };
 
@@ -43,19 +44,19 @@ const state = ref<{
     label: "Check for updates on Start",
     isCheckboxItem: true,
     action: checkForUpdatesOnStartToggle,
-    checkboxValue: true,
+    checkboxValue: checkForUpdatesOnStart.value,
   },
   ignoreLongSectionWarning: {
     label: "Ignore long section warning",
     isCheckboxItem: true,
     action: ignoreLongSectionWarningToggle,
-    checkboxValue: false,
+    checkboxValue: ignoreLongSectionWarning.value,
   },
   onlyCreateNecessaryKeyframes: {
     label: "Only create necessary Keyframes",
     isCheckboxItem: true,
     action: onlyCreateNecessaryKeyframesToggle,
-    checkboxValue: true,
+    checkboxValue: onlyCreateNecessaryKeyframes.value,
   },
 });
 
@@ -122,26 +123,22 @@ const menus: Menu[] = [
 
 function displayLogsToggle(state: boolean) {
   log("display logs toggle to:", state);
-  displayLogs.value = state;
-  sendSettings();
+  setSetting({ displayLogs: state });
 }
 
 function checkForUpdatesOnStartToggle(state: boolean) {
   log("check for updates on start toggle to:", state);
-  checkForUpdatesOnStart.value = state;
-  sendSettings();
+  setSetting({ checkForUpdatesOnStart: state });
 }
 
 function ignoreLongSectionWarningToggle(state: boolean) {
   log("ignore long section warning toggle to:", state);
-  ignoreLongSectionWarning.value = state;
-  sendSettings();
+  setSetting({ ignoreLongSectionWarning: state });
 }
 
 function onlyCreateNecessaryKeyframesToggle(state: boolean) {
   log("only create necessary Keyframes toggle to:", state);
-  onlyCreateNecessaryKeyframes.value = state;
-  sendSettings();
+  setSetting({ onlyCreateNecessaryKeyframes: state });
 }
 
 function preferencesOnClick() {
