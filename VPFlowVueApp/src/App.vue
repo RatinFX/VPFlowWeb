@@ -27,11 +27,6 @@ const handleDisplayText = computed(() => {
   return canvasAreaRef.value?.handleDisplayText ?? "0.00, 0.00, 0.00, 0.00";
 });
 
-function applyClick() {
-  // Send curve points to backend
-  sendApply(points.value);
-}
-
 onMounted(() => {
   // Receive items data from backend
   onReceiveItems((data: string) => {
@@ -78,7 +73,7 @@ onMounted(() => {
             <div class="mt-2 flex gap-2">
               <!-- TODO: change into a toggle icon -->
               <VPFDropdownMenu buttonClasses="flex-1" :items="itemsDisplayed" />
-              <Button class="flex-1 min-w-2/3" @click="applyClick"
+              <Button class="flex-1 min-w-2/3" @click="sendApply(points)"
                 >Apply</Button
               >
             </div>

@@ -157,13 +157,13 @@ const libraryPresets: PresetCurve[] = [
 ];
 
 function onPresetClick(preset: PresetCurve) {
-  log(`Loading preset curve: "${preset.name}"`, preset);
+  log(`Loading preset curve: "${preset.name}"`);
   // Load preset points into the editor
   loadPoints(preset.points);
 }
 
 function onApplyPresetClick(preset: PresetCurve) {
-  log(`Applying preset curve directly: "${preset.name}"`, preset);
+  log(`Applying preset curve directly: "${preset.name}"`);
   // Apply preset directly to backend without loading into editor
   sendApply(preset.points);
 }
