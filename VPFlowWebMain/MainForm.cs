@@ -190,7 +190,6 @@ namespace VPFlowWebMain
         internal void HandleApply(object payload)
         {
             var webMessage = Messaging.CreateWebMessage<ApplyPayload>(MessageType.Apply, payload);
-            Logging.Log("Applying points: " + JsonConvert.SerializeObject(webMessage));
         }
 
         internal void HandleSettingsChanged(object payload)

@@ -9,13 +9,15 @@ namespace VPFlowWebMain.Lib
     {
         private static TextBox LogArea => MainForm.Instance.LogArea;
 
-        private const int MAX_LOG_LINES = 50;
+        private const int MAX_LOG_LINES = 20;
 
         private static void Commit(string prefix, string text)
         {
             // build new entry and append to existing text
             var entry = prefix + text;
-            var current = string.IsNullOrEmpty(LogArea.Text) ? entry : (LogArea.Text + "\r\n" + entry);
+            var current = string.IsNullOrEmpty(LogArea.Text)
+                ? entry
+                : (LogArea.Text + "\r\n" + entry);
 
             // trim to last MAX_LOG_LINES lines
             var lines = current.Split(new[] { "\r\n" }, StringSplitOptions.None);
