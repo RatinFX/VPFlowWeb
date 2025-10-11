@@ -11,8 +11,11 @@ import messaging, { MessageType } from "@/lib/messaging";
 const { theme } = useSettings();
 
 function onThemeUpdate() {
-  theme.value = theme.value === "light" ? "dark" : "light";
-  messaging.sendMessage(MessageType.Settings);
+  // Toggle between light and dark
+  if (theme) {
+    theme.value = theme.value === "light" ? "dark" : "light";
+    messaging.sendMessage(MessageType.Settings);
+  }
 }
 </script>
 

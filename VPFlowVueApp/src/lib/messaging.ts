@@ -2,13 +2,13 @@ import { useSettings } from "@/composables/useSettings";
 import { log, warn } from "./logging";
 import type { Point } from "@/models/PresetCurve";
 
+const settings = useSettings();
 const {
-  theme,
   displayLogs,
   checkForUpdatesOnStart,
   ignoreLongSectionWarning,
   onlyCreateNecessaryKeyframes,
-} = useSettings();
+} = settings;
 
 const MessageType = {
   Apply: "Apply",
@@ -69,8 +69,10 @@ export interface SettingsPayload {
 }
 
 function getSettingsPayload(): SettingsPayload {
+  const themeValue = settings.theme?.value ?? "dark";
+  log("Current theme value:", themeValue);
   return {
-    theme: theme.value,
+    theme: themeValue, // Access theme string value from settings
     displayLogs: displayLogs.value,
     checkForUpdatesOnStart: checkForUpdatesOnStart.value,
     ignoreLongSectionWarning: ignoreLongSectionWarning.value,

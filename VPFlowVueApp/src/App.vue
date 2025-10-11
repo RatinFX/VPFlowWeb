@@ -18,7 +18,7 @@ import { useCurvePoints } from "./composables/useCurvePoints";
 const { points } = useCurvePoints();
 
 // Use settings composable
-const { theme } = useSettings();
+const settings = useSettings();
 
 const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
@@ -44,7 +44,8 @@ function handleApplyPreset(preset: PresetCurve) {
   messaging.sendMessage(MessageType.Apply, preset.points);
 }
 
-theme.value = useColorMode({
+// Initialize theme with useColorMode
+settings.theme = useColorMode({
   disableTransition: false,
   onChanged: (newMode, defaultHandler) => {
     log("Theme changed to:", newMode);

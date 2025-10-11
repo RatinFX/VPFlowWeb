@@ -62,7 +62,11 @@ onMounted(() => {
     const parsed = JSON.parse(data) as SettingsPayload;
     log("recieved settings:", parsed);
 
-    theme.value = parsed.theme;
+    // Set the theme string value from backend
+    if (theme && parsed.theme) {
+      // Cast to the correct type - BasicColorSchema includes light/dark but not auto in settings
+      theme.value = parsed.theme as any;
+    }
 
     displayLogs.value = parsed.displayLogs;
     state.value.displayLogs.checkboxValue = displayLogs.value;
