@@ -1,19 +1,25 @@
 import { ref } from "vue";
 import type { Point } from "@/models/PresetCurve";
 
+// Helper to convert from display values (0=bottom, 1=top) to internal SVG values (0=top, 1=bottom)
+const yFromDisplayValues = (displayY: number): number => {
+  return 1 - displayY;
+};
+
 // Shared state - will be the same instance across all components that use this composable
+// Default points defined using display coordinates for clarity
 const points = ref<Point[]>([
   {
     id: "start",
     x: 0,
-    y: 1,
-    handleOut: { x: 0.72, y: 0.82 }, // SVG coords (0=top, 1=bottom)
+    y: yFromDisplayValues(0), // Display: 0 (bottom) -> SVG: 1 (bottom)
+    handleOut: { x: 0.72, y: yFromDisplayValues(0.18) }, // Display coords converted to SVG
   },
   {
     id: "end",
     x: 1,
-    y: 0,
-    handleIn: { x: 0.28, y: 0.18 },
+    y: yFromDisplayValues(1), // Display: 1 (top) -> SVG: 0 (top)
+    handleIn: { x: 0.28, y: yFromDisplayValues(0.82) }, // Display coords converted to SVG
   },
 ]);
 
@@ -37,14 +43,14 @@ export function useCurvePoints() {
       {
         id: "start",
         x: 0,
-        y: 1,
-        handleOut: { x: 0.72, y: 0.82 },
+        y: yFromDisplayValues(0),
+        handleOut: { x: 0.72, y: yFromDisplayValues(0.18) },
       },
       {
         id: "end",
         x: 1,
-        y: 0,
-        handleIn: { x: 0.28, y: 0.18 },
+        y: yFromDisplayValues(1),
+        handleIn: { x: 0.28, y: yFromDisplayValues(0.82) },
       },
     ];
     selectedPointId.value = "start";
@@ -57,11 +63,6 @@ export function useCurvePoints() {
     if (points.value.length > 0) {
       selectedPointId.value = points.value[0]!.id;
     }
-  };
-
-  // Helper to convert from display values (0=bottom, 1=top) to internal SVG values (0=top, 1=bottom)
-  const yFromDisplayValues = (displayY: number): number => {
-    return 1 - displayY;
   };
 
   // Helper to convert from internal SVG values (0=top, 1=bottom) to display values (0=bottom, 1=top)
