@@ -7,12 +7,13 @@ import LoggingTextarea from "./components/LoggingTextarea.vue";
 import SplitContainer from "./components/SplitContainer.vue";
 import { log } from "./lib/logging";
 import CanvasArea from "./components/CanvasArea.vue";
-import messaging, { MessageType } from "./lib/messaging";
+import { useMessaging } from "./composables/useMessaging";
 import CurveTabs from "./components/CurveTabs.vue";
 import { useCurvePoints } from "./composables/useCurvePoints";
 
-// Use the curve points composable
+// Use composables
 const { points } = useCurvePoints();
+const { sendApply, onReceiveItems } = useMessaging();
 
 const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
@@ -26,15 +27,15 @@ const handleDisplayText = computed(() => {
 });
 
 function applyClick() {
-  // Points are now in composable, access them directly
-  messaging.sendMessage(MessageType.Apply, points.value);
+  // Send curve points to backend
+  sendApply(points.value);
 }
 
 onMounted(() => {
-  // Recieve data
-  messaging.setReceiveItems((data: string) => {
+  // Receive items data from backend
+  onReceiveItems((data: string) => {
     const parsed = JSON.parse(data) as string[];
-    log("receiveSettings", parsed);
+    log("receiveItems", parsed);
 
     items.value = parsed;
   });

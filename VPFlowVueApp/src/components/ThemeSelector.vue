@@ -6,14 +6,15 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { useSettings } from "@/composables/useSettings";
-import messaging, { MessageType } from "@/lib/messaging";
+import { useMessaging } from "@/composables/useMessaging";
 
 const { theme } = useSettings();
+const { sendSettings } = useMessaging();
 
 function onThemeUpdate() {
   // Toggle between light and dark
   theme.value = theme.value === "light" ? "dark" : "light";
-  messaging.sendMessage(MessageType.Settings);
+  sendSettings();
 }
 </script>
 

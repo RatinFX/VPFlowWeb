@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import type { PresetCurve } from "@/models/PresetCurve";
 import { useCurvePoints } from "@/composables/useCurvePoints";
-import messaging, { MessageType } from "@/lib/messaging";
+import { useMessaging } from "@/composables/useMessaging";
 import Tabs from "./ui/tabs/Tabs.vue";
 import TabsContent from "./ui/tabs/TabsContent.vue";
 import TabsList from "./ui/tabs/TabsList.vue";
 import TabsTrigger from "./ui/tabs/TabsTrigger.vue";
 
 const { yFromDisplayValues, loadPoints } = useCurvePoints();
+const { sendApply } = useMessaging();
 
 // Library preset curves - defined in display coordinates (0=bottom, 1=top)
 const libraryPresets: PresetCurve[] = [
@@ -160,7 +161,7 @@ function onPresetClick(preset: PresetCurve) {
 
 function onApplyPresetClick(preset: PresetCurve) {
   // Apply preset directly to backend without loading into editor
-  messaging.sendMessage(MessageType.Apply, preset.points);
+  sendApply(preset.points);
 }
 </script>
 

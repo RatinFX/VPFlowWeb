@@ -13,7 +13,7 @@ import { useSettings } from "@/composables/useSettings";
 import { onMounted, ref } from "vue";
 import { log } from "@/lib/logging";
 import ThemeSelector from "./ThemeSelector.vue";
-import messaging, { MessageType, type SettingsPayload } from "@/lib/messaging";
+import { useMessaging, type SettingsPayload } from "@/composables/useMessaging";
 
 const {
   theme,
@@ -22,6 +22,8 @@ const {
   ignoreLongSectionWarning,
   onlyCreateNecessaryKeyframes,
 } = useSettings();
+
+const { sendSettings, onReceiveSettings } = useMessaging();
 
 const _separator: MenuItem = { isSeparator: true };
 
@@ -58,9 +60,9 @@ const state = ref<{
 });
 
 onMounted(() => {
-  messaging.setReceiveSettings((data) => {
+  onReceiveSettings((data: string) => {
     const parsed = JSON.parse(data) as SettingsPayload;
-    log("recieved settings:", parsed);
+    log("received settings:", parsed);
 
     // Set the theme string value from backend
     theme.value = parsed.theme as any;
@@ -121,25 +123,25 @@ const menus: Menu[] = [
 function displayLogsToggle(state: boolean) {
   log("display logs toggle to:", state);
   displayLogs.value = state;
-  messaging.sendMessage(MessageType.Settings);
+  sendSettings();
 }
 
 function checkForUpdatesOnStartToggle(state: boolean) {
   log("check for updates on start toggle to:", state);
   checkForUpdatesOnStart.value = state;
-  messaging.sendMessage(MessageType.Settings);
+  sendSettings();
 }
 
 function ignoreLongSectionWarningToggle(state: boolean) {
   log("ignore long section warning toggle to:", state);
   ignoreLongSectionWarning.value = state;
-  messaging.sendMessage(MessageType.Settings);
+  sendSettings();
 }
 
 function onlyCreateNecessaryKeyframesToggle(state: boolean) {
   log("only create necessary Keyframes toggle to:", state);
   onlyCreateNecessaryKeyframes.value = state;
-  messaging.sendMessage(MessageType.Settings);
+  sendSettings();
 }
 
 function preferencesOnClick() {
