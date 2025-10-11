@@ -9,11 +9,19 @@ import {
 } from "@/components/ui/menubar";
 import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
 import type { Menu, MenuItem } from "@/models/Menu";
-import store from "@/store";
+import { useSettings } from "@/composables/useSettings";
 import { onMounted, ref } from "vue";
 import { log } from "@/lib/logging";
 import ThemeSelector from "./ThemeSelector.vue";
 import messaging, { MessageType, type SettingsPayload } from "@/lib/messaging";
+
+const {
+  theme,
+  displayLogs,
+  checkForUpdatesOnStart,
+  ignoreLongSectionWarning,
+  onlyCreateNecessaryKeyframes,
+} = useSettings();
 
 const _separator: MenuItem = { isSeparator: true };
 
@@ -27,7 +35,7 @@ const state = ref<{
     label: "Display logs",
     isCheckboxItem: true,
     action: displayLogsToggle,
-    checkboxValue: store.displayLogs.value,
+    checkboxValue: displayLogs.value,
   },
   checkForUpdatesOnStart: {
     label: "Check for updates on Start",
@@ -54,23 +62,22 @@ onMounted(() => {
     const parsed = JSON.parse(data) as SettingsPayload;
     log("recieved settings:", parsed);
 
-    store.theme.value = parsed.theme;
+    theme.value = parsed.theme;
 
-    store.displayLogs.value = parsed.displayLogs;
-    state.value.displayLogs.checkboxValue = store.displayLogs.value;
+    displayLogs.value = parsed.displayLogs;
+    state.value.displayLogs.checkboxValue = displayLogs.value;
 
-    store.checkForUpdatesOnStart.value = parsed.checkForUpdatesOnStart;
+    checkForUpdatesOnStart.value = parsed.checkForUpdatesOnStart;
     state.value.checkForUpdatesOnStart.checkboxValue =
-      store.checkForUpdatesOnStart.value;
+      checkForUpdatesOnStart.value;
 
-    store.ignoreLongSectionWarning.value = parsed.ignoreLongSectionWarning;
+    ignoreLongSectionWarning.value = parsed.ignoreLongSectionWarning;
     state.value.ignoreLongSectionWarning.checkboxValue =
-      store.ignoreLongSectionWarning.value;
+      ignoreLongSectionWarning.value;
 
-    store.onlyCreateNecessaryKeyframes.value =
-      parsed.onlyCreateNecessaryKeyframes;
+    onlyCreateNecessaryKeyframes.value = parsed.onlyCreateNecessaryKeyframes;
     state.value.onlyCreateNecessaryKeyframes.checkboxValue =
-      store.onlyCreateNecessaryKeyframes.value;
+      onlyCreateNecessaryKeyframes.value;
   });
 });
 
@@ -112,25 +119,25 @@ const menus: Menu[] = [
 
 function displayLogsToggle(state: boolean) {
   log("display logs toggle to:", state);
-  store.displayLogs.value = state;
+  displayLogs.value = state;
   messaging.sendMessage(MessageType.Settings);
 }
 
 function checkForUpdatesOnStartToggle(state: boolean) {
   log("check for updates on start toggle to:", state);
-  store.checkForUpdatesOnStart.value = state;
+  checkForUpdatesOnStart.value = state;
   messaging.sendMessage(MessageType.Settings);
 }
 
 function ignoreLongSectionWarningToggle(state: boolean) {
   log("ignore long section warning toggle to:", state);
-  store.ignoreLongSectionWarning.value = state;
+  ignoreLongSectionWarning.value = state;
   messaging.sendMessage(MessageType.Settings);
 }
 
 function onlyCreateNecessaryKeyframesToggle(state: boolean) {
   log("only create necessary Keyframes toggle to:", state);
-  store.onlyCreateNecessaryKeyframes.value = state;
+  onlyCreateNecessaryKeyframes.value = state;
   messaging.sendMessage(MessageType.Settings);
 }
 

@@ -1,6 +1,14 @@
-import store from "@/store";
+import { useSettings } from "@/composables/useSettings";
 import { log, warn } from "./logging";
 import type { Point } from "@/models/PresetCurve";
+
+const {
+  theme,
+  displayLogs,
+  checkForUpdatesOnStart,
+  ignoreLongSectionWarning,
+  onlyCreateNecessaryKeyframes,
+} = useSettings();
 
 const MessageType = {
   Apply: "Apply",
@@ -62,11 +70,11 @@ export interface SettingsPayload {
 
 function getSettingsPayload(): SettingsPayload {
   return {
-    theme: store.theme.value,
-    displayLogs: store.displayLogs.value,
-    checkForUpdatesOnStart: store.checkForUpdatesOnStart.value,
-    ignoreLongSectionWarning: store.ignoreLongSectionWarning.value,
-    onlyCreateNecessaryKeyframes: store.onlyCreateNecessaryKeyframes.value,
+    theme: theme.value,
+    displayLogs: displayLogs.value,
+    checkForUpdatesOnStart: checkForUpdatesOnStart.value,
+    ignoreLongSectionWarning: ignoreLongSectionWarning.value,
+    onlyCreateNecessaryKeyframes: onlyCreateNecessaryKeyframes.value,
   };
 }
 

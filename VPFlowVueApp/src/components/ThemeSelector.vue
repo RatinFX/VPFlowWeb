@@ -5,11 +5,13 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import store from "@/store";
+import { useSettings } from "@/composables/useSettings";
 import messaging, { MessageType } from "@/lib/messaging";
 
+const { theme } = useSettings();
+
 function onThemeUpdate() {
-  store.theme.value = store.theme.value === "light" ? "dark" : "light";
+  theme.value = theme.value === "light" ? "dark" : "light";
   messaging.sendMessage(MessageType.Settings);
 }
 </script>

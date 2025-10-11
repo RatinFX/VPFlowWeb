@@ -8,7 +8,7 @@ import SplitContainer from "./components/SplitContainer.vue";
 import { log } from "./lib/logging";
 import CanvasArea from "./components/CanvasArea.vue";
 import messaging, { MessageType } from "./lib/messaging";
-import store from "./store";
+import { useSettings } from "./composables/useSettings";
 import { useColorMode } from "@vueuse/core";
 import CurveTabs from "./components/CurveTabs.vue";
 import type { PresetCurve } from "./models/PresetCurve";
@@ -16,6 +16,9 @@ import { useCurvePoints } from "./composables/useCurvePoints";
 
 // Use the curve points composable
 const { points } = useCurvePoints();
+
+// Use settings composable
+const { theme } = useSettings();
 
 const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
@@ -41,7 +44,7 @@ function handleApplyPreset(preset: PresetCurve) {
   messaging.sendMessage(MessageType.Apply, preset.points);
 }
 
-store.theme = useColorMode({
+theme.value = useColorMode({
   disableTransition: false,
   onChanged: (newMode, defaultHandler) => {
     log("Theme changed to:", newMode);

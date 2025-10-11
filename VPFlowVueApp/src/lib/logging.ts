@@ -1,4 +1,6 @@
-import store from "../store";
+import { useSettings } from "@/composables/useSettings";
+
+const { logs } = useSettings();
 
 const MAX_LOG_LINES = 50;
 
@@ -18,8 +20,8 @@ function trim(text: string) {
 
 function commit(prefix: string, data: any[]) {
   const entry = prefix + format(data);
-  const newText = !store.logs.value ? entry : store.logs.value + "\r\n" + entry;
-  store.logs.value = trim(newText);
+  const newText = !logs.value ? entry : logs.value + "\r\n" + entry;
+  logs.value = trim(newText);
 }
 
 export function log(...data: any[]) {
