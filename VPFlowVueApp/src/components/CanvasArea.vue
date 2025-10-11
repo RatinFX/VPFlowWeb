@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { log } from "@/lib/logging";
+import { useLogging } from "@/composables/useLogging";
 import type { Point, PresetCurve } from "@/models/PresetCurve";
 import { useCurvePoints } from "@/composables/useCurvePoints";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
-// Use the curve points composable
+// Use composables
+const { log } = useLogging();
 const {
   points,
   getSelectedPoint,

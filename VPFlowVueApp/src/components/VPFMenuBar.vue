@@ -11,7 +11,7 @@ import MenubarCheckboxItem from "./ui/menubar/MenubarCheckboxItem.vue";
 import type { Menu, MenuItem } from "@/models/Menu";
 import { useSettings } from "@/composables/useSettings";
 import { onMounted, ref } from "vue";
-import { log } from "@/lib/logging";
+import { useLogging } from "@/composables/useLogging";
 import ThemeSelector from "./ThemeSelector.vue";
 import { useMessaging, type SettingsPayload } from "@/composables/useMessaging";
 
@@ -25,6 +25,7 @@ const {
 } = useSettings();
 
 const { onReceiveSettings } = useMessaging();
+const { log } = useLogging();
 
 const _separator: MenuItem = { isSeparator: true };
 

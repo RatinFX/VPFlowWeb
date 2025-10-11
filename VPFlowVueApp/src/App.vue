@@ -5,7 +5,7 @@ import { computed, onMounted, ref } from "vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
 import SplitContainer from "./components/SplitContainer.vue";
-import { log } from "./lib/logging";
+import { useLogging } from "./composables/useLogging";
 import CanvasArea from "./components/CanvasArea.vue";
 import { useMessaging } from "./composables/useMessaging";
 import CurveTabs from "./components/CurveTabs.vue";
@@ -14,6 +14,7 @@ import { useCurvePoints } from "./composables/useCurvePoints";
 // Use composables
 const { points } = useCurvePoints();
 const { sendApply, onReceiveItems } = useMessaging();
+const { log } = useLogging();
 
 const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);

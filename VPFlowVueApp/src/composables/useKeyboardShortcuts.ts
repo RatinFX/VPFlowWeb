@@ -1,6 +1,6 @@
 import { onMounted, onUnmounted, type Ref } from "vue";
 import type { Point } from "@/models/PresetCurve";
-import { log } from "@/lib/logging";
+import { useLogging } from "./useLogging";
 
 export interface KeyboardShortcutHandlers {
   onResetView?: () => void;
@@ -25,6 +25,8 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions) {
     handlers,
     enabled = { value: true } as Ref<boolean>,
   } = options;
+
+  const { log } = useLogging();
 
   const smallStep = 0.01; // Small movement step
   const bigStep = 0.05; // Big movement step (with Shift)

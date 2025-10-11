@@ -1,5 +1,5 @@
 import { useSettings } from "./useSettings";
-import { log, warn } from "@/lib/logging";
+import { useLogging } from "./useLogging";
 import type { Point } from "@/models/PresetCurve";
 
 // Message types
@@ -37,6 +37,8 @@ type ReceiveItemsCallback = (data: string) => void;
  * Provides type-safe message sending and receiving capabilities
  */
 export function useMessaging() {
+  const { log, warn } = useLogging();
+
   /**
    * Send a message to the backend via WebView2
    */

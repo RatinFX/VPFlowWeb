@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { log } from "@/lib/logging";
+import { useLogging } from "@/composables/useLogging";
 import { onBeforeUnmount, onMounted, ref, nextTick } from "vue";
+
+const { log } = useLogging();
 
 const MIN_SPLIT = 20;
 const MAX_SPLIT = 80;
