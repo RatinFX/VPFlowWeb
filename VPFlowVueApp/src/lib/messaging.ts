@@ -1,5 +1,6 @@
 import store from "@/store";
 import { log, warn } from "./logging";
+import type { Point } from "@/models/PresetCurve";
 
 const MessageType = {
   Apply: "Apply",
@@ -17,9 +18,22 @@ export interface WebMessage {
 
 /** Send data to backend */
 
-function sendMessage(type: MessageType) {
-  const payload: WebMessage = createPayload(type);
+function sendMessage(type: MessageType, data?: Point[] | SettingsPayload) {
+  const payload: WebMessage = {
+    messageType: type,
+    payload: data || {},
+  };
+
+  if (type === MessageType.Apply && data && Array.isArray(data)) {
+    payload.payload = getApplyPayload(data);
+  }
+
+  if (type === MessageType.Settings) {
+    payload.payload = getSettingsPayload();
+  }
+
   log("payload:", payload);
+
   if (window.chrome?.webview?.postMessage) {
     window.chrome.webview.postMessage(payload);
     log("sent message with payload:", payload);
@@ -28,31 +42,13 @@ function sendMessage(type: MessageType) {
   }
 }
 
-export function createPayload(type: MessageType): WebMessage {
-  const result: WebMessage = {
-    messageType: type,
-    payload: {},
-  };
-
-  if (type === MessageType.Apply) {
-    result.payload = getApplyPayload();
-  }
-
-  if (type === MessageType.Settings) {
-    result.payload = getSettingsPayload();
-  }
-
-  return result;
-}
-
 export interface ApplyPayload {
-  coordinates: number[];
+  points: Point[];
 }
 
-function getApplyPayload(): ApplyPayload {
+function getApplyPayload(points: Point[]) {
   return {
-    // TODO: account for multiple points
-    coordinates: [0.7, 0.27, 0.5, 1.0],
+    points: points,
   };
 }
 
@@ -84,7 +80,6 @@ function setReceiveItems(callback: (data: string) => void) {
 
 export default {
   sendMessage,
-  createPayload,
   setReceiveSettings,
   setReceiveItems,
 };

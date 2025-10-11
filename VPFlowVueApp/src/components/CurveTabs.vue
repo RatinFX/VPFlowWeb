@@ -7,6 +7,7 @@ import TabsTrigger from "./ui/tabs/TabsTrigger.vue";
 
 const emit = defineEmits<{
   loadPreset: [PresetCurve];
+  applyPreset: [PresetCurve];
 }>();
 
 // Library preset curves
@@ -86,6 +87,10 @@ const libraryPresets: PresetCurve[] = [
 function onPresetClick(preset: PresetCurve) {
   emit("loadPreset", preset);
 }
+
+function onApplyPresetClick(preset: PresetCurve) {
+  emit("applyPreset", preset);
+}
 </script>
 
 <template>
@@ -101,6 +106,7 @@ function onPresetClick(preset: PresetCurve) {
             v-for="preset in libraryPresets"
             :key="preset.name"
             @click="onPresetClick(preset)"
+            @dblclick="onApplyPresetClick(preset)"
             class="w-20 h-20 border-2 border-border hover:border-primary rounded flex items-center justify-center text-sm bg-muted/20 hover:bg-muted/40 transition-colors"
           >
             {{ preset.name }}

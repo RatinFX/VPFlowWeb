@@ -12,6 +12,10 @@ import store from "./store";
 import { useColorMode } from "@vueuse/core";
 import CurveTabs from "./components/CurveTabs.vue";
 import type { PresetCurve } from "./models/PresetCurve";
+import { useCurvePoints } from "./composables/useCurvePoints";
+
+// Use the curve points composable
+const { points } = useCurvePoints();
 
 const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
@@ -25,11 +29,16 @@ const handleDisplayText = computed(() => {
 });
 
 function applyClick() {
-  messaging.sendMessage(MessageType.Apply);
+  // Points are now in composable, access them directly
+  messaging.sendMessage(MessageType.Apply, points.value);
 }
 
 function handleLoadPreset(preset: PresetCurve) {
   canvasAreaRef.value?.loadPreset(preset);
+}
+
+function handleApplyPreset(preset: PresetCurve) {
+  messaging.sendMessage(MessageType.Apply, preset.points);
 }
 
 store.theme = useColorMode({
@@ -108,7 +117,10 @@ onMounted(() => {
               </div>
             </div>
           </div> -->
-          <CurveTabs @load-preset="handleLoadPreset" />
+          <CurveTabs
+            @load-preset="handleLoadPreset"
+            @apply-preset="handleApplyPreset"
+          />
         </template>
       </SplitContainer>
     </main>
