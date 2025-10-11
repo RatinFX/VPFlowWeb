@@ -1,3 +1,4 @@
+import type { SelectedMode } from "@/types/SelectedMode";
 import {
   type BasicColorMode,
   useColorMode,
@@ -15,6 +16,7 @@ const displayLogs = ref(true);
 const checkForUpdatesOnStart = ref(true);
 const ignoreLongSectionWarning = ref(false);
 const onlyCreateNecessaryKeyframes = ref(true);
+const selectedMode = ref<SelectedMode>(0);
 
 // Type for setting updates
 export type SettingUpdate = Partial<{
@@ -22,6 +24,7 @@ export type SettingUpdate = Partial<{
   checkForUpdatesOnStart: boolean;
   ignoreLongSectionWarning: boolean;
   onlyCreateNecessaryKeyframes: boolean;
+  selectedMode: SelectedMode;
 }>;
 
 export function useSettings() {
@@ -43,6 +46,9 @@ export function useSettings() {
     if (updates.onlyCreateNecessaryKeyframes !== undefined) {
       onlyCreateNecessaryKeyframes.value = updates.onlyCreateNecessaryKeyframes;
     }
+    if (updates.selectedMode !== undefined) {
+      selectedMode.value = updates.selectedMode;
+    }
 
     // Send settings to backend (lazy import to avoid circular dependency)
     import("./useMessaging").then(({ useMessaging }) => {
@@ -59,6 +65,7 @@ export function useSettings() {
     checkForUpdatesOnStart,
     ignoreLongSectionWarning,
     onlyCreateNecessaryKeyframes,
+    selectedMode,
 
     // Actions
     setSetting,

@@ -21,6 +21,7 @@ const {
   checkForUpdatesOnStart,
   ignoreLongSectionWarning,
   onlyCreateNecessaryKeyframes,
+  selectedMode,
   setSetting,
 } = useSettings();
 
@@ -83,6 +84,8 @@ onMounted(() => {
     onlyCreateNecessaryKeyframes.value = parsed.onlyCreateNecessaryKeyframes;
     state.value.onlyCreateNecessaryKeyframes.checkboxValue =
       onlyCreateNecessaryKeyframes.value;
+
+    selectedMode.value = parsed.selectedMode;
   });
 });
 

@@ -1,4 +1,5 @@
 ﻿using RatinFX.VP.Helpers;
+using VPFlowWebMain.Models;
 
 namespace VPFlowWebMain.Config
 {
@@ -9,6 +10,7 @@ namespace VPFlowWebMain.Config
         public bool CheckForUpdatesOnStart { get; set; } = true;
         public bool IgnoreLongSectionWarning { get; set; } = false;
         public bool OnlyCreateNecessaryKeyframes { get; set; } = true;
+        public SelectedMode SelectedMode { get; set; } = SelectedMode.Event;
 
         public long LastChecked { get; set; } = -1;
         public string LatestVersion { get; set; } = "0.0.0";
@@ -27,6 +29,7 @@ namespace VPFlowWebMain.Config
                 CheckForUpdatesOnStart = config.CheckForUpdatesOnStart;
                 IgnoreLongSectionWarning = config.IgnoreLongSectionWarning;
                 OnlyCreateNecessaryKeyframes = config.OnlyCreateNecessaryKeyframes;
+                SelectedMode = config.SelectedMode;
 
                 LastChecked = config.LastChecked;
                 LatestVersion = config.LatestVersion;

@@ -1,4 +1,5 @@
 import type { Point } from "@/models/PresetCurve";
+import type { SelectedMode } from "@/types/SelectedMode";
 import { useLogging } from "./useLogging";
 import { useSettings } from "./useSettings";
 
@@ -21,6 +22,7 @@ export interface SettingsPayload {
   checkForUpdatesOnStart: boolean;
   ignoreLongSectionWarning: boolean;
   onlyCreateNecessaryKeyframes: boolean;
+  selectedMode: SelectedMode;
 }
 
 export interface WebMessage<T = any> {
@@ -109,6 +111,11 @@ export function useMessaging() {
     log("Items receive callback registered");
   }
 
+  // TODO:
+  // - remove onReceiveItems and receiveItems
+  // - receiveEffects here, and to window
+  // - receiveParameters here, and to window
+
   /**
    * Create payload for apply message
    */
@@ -128,6 +135,7 @@ export function useMessaging() {
       checkForUpdatesOnStart: settings.checkForUpdatesOnStart.value,
       ignoreLongSectionWarning: settings.ignoreLongSectionWarning.value,
       onlyCreateNecessaryKeyframes: settings.onlyCreateNecessaryKeyframes.value,
+      selectedMode: settings.selectedMode.value,
     };
   }
 

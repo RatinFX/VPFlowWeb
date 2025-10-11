@@ -1,4 +1,5 @@
 ﻿using VPFlowWebMain.Config;
+using VPFlowWebMain.Models;
 
 namespace VPFlowWebMain.Controllers
 {
@@ -76,6 +77,18 @@ namespace VPFlowWebMain.Controllers
         public void SetOnlyCreateNecessaryKeyframes(bool @checked)
         {
             Settings.OnlyCreateNecessaryKeyframes = @checked;
+            Settings.Save();
+        }
+
+        ///
+        public SelectedMode SelectedMode()
+        {
+            return Settings?.SelectedMode ?? Models.SelectedMode.Event;
+        }
+
+        public void SetSelectedMode(SelectedMode mode)
+        {
+            Settings.SelectedMode = mode;
             Settings.Save();
         }
 

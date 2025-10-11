@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import CanvasArea from "./components/CanvasArea.vue";
 import CurveTabs from "./components/CurveTabs.vue";
 import LoggingTextarea from "./components/LoggingTextarea.vue";
+import SelectionModeToggle from "./components/SelectionModeToggle.vue";
 import ShortcutsInfo from "./components/ShortcutsInfo.vue";
 import SplitContainer from "./components/SplitContainer.vue";
 import VPFDropdownMenu from "./components/VPFDropdownMenu.vue";
@@ -17,16 +18,13 @@ const { points } = useCurvePoints();
 const { sendApply, onReceiveItems } = useMessaging();
 const { log } = useLogging();
 
-const items = ref(["Event", "Track"]);
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
-
-const itemsDisplayed = computed(() => {
-  return items.value;
-});
 
 const handleDisplayText = computed(() => {
   return canvasAreaRef.value?.handleDisplayText ?? "0.00, 0.00, 0.00, 0.00";
 });
+
+const items = ref(["Event", "Track"]);
 
 onMounted(() => {
   // Receive items data from backend
@@ -63,10 +61,13 @@ onMounted(() => {
             </div>
 
             <div class="flex gap-2">
+              <SelectionModeToggle />
+
               <VPFDropdownMenu
                 buttonClasses="flex-1"
                 :items="['S_Shape', 'S_BlurMoCurves']"
               />
+
               <VPFDropdownMenu
                 buttonClasses="flex-1"
                 :items="['Test prop', 'X', 'Y', 'Z']"
@@ -74,11 +75,9 @@ onMounted(() => {
             </div>
 
             <div class="flex gap-2">
-              <!-- TODO: change into a toggle icon -->
-              <VPFDropdownMenu buttonClasses="flex-1" :items="itemsDisplayed" />
-              <Button class="flex-1 min-w-2/3" @click="sendApply(points)"
-                >Apply</Button
-              >
+              <Button class="flex-1 min-w-2/3" @click="sendApply(points)">
+                Apply
+              </Button>
             </div>
           </div>
         </template>

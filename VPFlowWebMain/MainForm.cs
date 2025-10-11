@@ -203,6 +203,7 @@ namespace VPFlowWebMain
                 SettingsController.Instance.SetCheckForUpdatesOnStart(webMessage.Payload.checkForUpdatesOnStart);
                 SettingsController.Instance.SetIgnoreLongSectionWarning(webMessage.Payload.ignoreLongSectionWarning);
                 SettingsController.Instance.SetOnlyCreateNecessaryKeyframes(webMessage.Payload.onlyCreateNecessaryKeyframes);
+                SettingsController.Instance.SetSelectedMode(webMessage.Payload.selectedMode);
             });
         }
 
@@ -228,6 +229,7 @@ namespace VPFlowWebMain
                 ignoreLongSectionWarning = SettingsController.Instance.IgnoreLongSectionWarning(),
                 onlyCreateNecessaryKeyframes = SettingsController.Instance.OnlyCreateNecessaryKeyframes(),
                 checkForUpdatesOnStart = SettingsController.Instance.CheckForUpdatesOnStart(),
+                selectedMode = SettingsController.Instance.SelectedMode(),
             };
 
             await webVPFlow.receiveSettings(payload);

@@ -24,6 +24,12 @@ namespace VPFlowWebMain.Models
         public float y { get; set; }
     }
 
+    internal enum SelectedMode
+    {
+        Event = 0,
+        Track = 1
+    }
+
     internal class SettingsPayload : BasePayload
     {
         public string theme { get; set; }
@@ -31,5 +37,6 @@ namespace VPFlowWebMain.Models
         public bool checkForUpdatesOnStart { get; set; }
         public bool ignoreLongSectionWarning { get; set; }
         public bool onlyCreateNecessaryKeyframes { get; set; }
+        public SelectedMode selectedMode { get; set; }
     }
 }
