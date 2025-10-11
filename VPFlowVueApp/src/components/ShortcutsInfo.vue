@@ -38,7 +38,7 @@ onUnmounted(() => {
       <button
         class="w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
       >
-        <Icon icon="radix-icons:question-mark-circled" class="w-5 h-5" />
+        <Icon icon="radix-icons:question-mark-circled" class="size-5" />
       </button>
 
       <!-- Info overlay -->
