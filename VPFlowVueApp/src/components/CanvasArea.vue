@@ -21,11 +21,26 @@ const {
 // Constants
 const POINT_RADIUS = 4;
 const POINT_COLOR = "#fdbf28";
-const HANDLE_RADIUS = 3;
-const HANDLE_LINE_WIDTH = 1;
+const HANDLE_RADIUS = 4;
+const HANDLE_LINE_WIDTH = 2;
+const CURVE_PATH_WIDTH = 2;
 const CURVE_SIZE = 100; // The curve coordinate system (0-100)
 const CANVAS_PADDING = 1000; // Extra space around curve for handles to overshoot
 const CANVAS_SIZE = CURVE_SIZE + CANVAS_PADDING * 2; // Total canvas size
+const GENERAL_LINE_WIDTH = 1;
+
+const scaledSizes = computed(() => {
+  const scale = transform.value.scale;
+  return {
+    pointRadius: POINT_RADIUS / scale,
+    handleRadius: HANDLE_RADIUS / scale,
+    handleLineWidth: HANDLE_LINE_WIDTH / scale,
+    curvePathWidth: CURVE_PATH_WIDTH / scale,
+    centerLineWidth: GENERAL_LINE_WIDTH / scale,
+    horizontalLineWidth: GENERAL_LINE_WIDTH / scale,
+    rectLineWidth: GENERAL_LINE_WIDTH / scale,
+  };
+});
 
 const container = ref<HTMLDivElement | null>(null);
 const svgRef = ref<SVGSVGElement | null>(null);
@@ -935,7 +950,7 @@ defineExpose({
             :height="CURVE_SIZE"
             fill="none"
             stroke="currentColor"
-            stroke-width="0.5"
+            :stroke-width="scaledSizes.rectLineWidth"
           />
 
           <!-- Grid lines -->
@@ -949,7 +964,7 @@ defineExpose({
               :x2="i * (CURVE_SIZE / 10)"
               :y2="CURVE_SIZE"
               stroke="currentColor"
-              stroke-width="0.5"
+              :stroke-width="scaledSizes.horizontalLineWidth"
             />
             <!-- Horizontal lines -->
             <line
@@ -960,7 +975,7 @@ defineExpose({
               :x2="CURVE_SIZE"
               :y2="i * (CURVE_SIZE / 10)"
               stroke="currentColor"
-              stroke-width="0.5"
+              :stroke-width="scaledSizes.horizontalLineWidth"
             />
           </g>
 
@@ -972,7 +987,7 @@ defineExpose({
               :x2="CURVE_SIZE / 2"
               :y2="CURVE_SIZE"
               stroke="currentColor"
-              stroke-width="0.5"
+              :stroke-width="scaledSizes.centerLineWidth"
             />
             <line
               x1="0"
@@ -980,7 +995,7 @@ defineExpose({
               :x2="CURVE_SIZE"
               :y2="CURVE_SIZE / 2"
               stroke="currentColor"
-              stroke-width="0.5"
+              :stroke-width="scaledSizes.centerLineWidth"
             />
           </g>
 
@@ -989,7 +1004,7 @@ defineExpose({
             :d="curvePath"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            :stroke-width="scaledSizes.curvePathWidth"
           />
 
           <!-- Handle lines and points for selected point and its neighbor -->
@@ -1013,7 +1028,7 @@ defineExpose({
                   :x2="point.handleOut.x * CURVE_SIZE"
                   :y2="point.handleOut.y * CURVE_SIZE"
                   stroke="currentColor"
-                  :stroke-width="HANDLE_LINE_WIDTH"
+                  :stroke-width="scaledSizes.handleLineWidth"
                   opacity="0.5"
                 />
 
@@ -1025,7 +1040,7 @@ defineExpose({
                   :x2="point.handleIn.x * CURVE_SIZE"
                   :y2="point.handleIn.y * CURVE_SIZE"
                   stroke="currentColor"
-                  :stroke-width="HANDLE_LINE_WIDTH"
+                  :stroke-width="scaledSizes.handleLineWidth"
                   opacity="0.5"
                 />
 
@@ -1034,7 +1049,7 @@ defineExpose({
                   v-if="point.handleOut"
                   :cx="point.handleOut.x * CURVE_SIZE"
                   :cy="point.handleOut.y * CURVE_SIZE"
-                  :r="HANDLE_RADIUS"
+                  :r="scaledSizes.handleRadius"
                   stroke="none"
                   :class="[
                     'fill-blue-500',
@@ -1048,7 +1063,7 @@ defineExpose({
                   v-if="point.handleIn"
                   :cx="point.handleIn.x * CURVE_SIZE"
                   :cy="point.handleIn.y * CURVE_SIZE"
-                  :r="HANDLE_RADIUS"
+                  :r="scaledSizes.handleRadius"
                   stroke="none"
                   :class="[
                     'fill-green-500',
@@ -1066,7 +1081,7 @@ defineExpose({
             :key="point.id"
             :cx="point.x * CURVE_SIZE"
             :cy="point.y * CURVE_SIZE"
-            :r="POINT_RADIUS"
+            :r="scaledSizes.pointRadius"
             stroke="none"
             :fill="
               selectedPoint?.id === point.id ? POINT_COLOR : 'var(--primary)'
