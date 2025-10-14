@@ -4,8 +4,8 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const { log } = useLogging();
 
-const MIN_SPLIT = 20;
-const MAX_SPLIT = 80;
+const MIN_SPLIT = 0;
+const MAX_SPLIT = 95;
 const DEFAULT_SPLIT = 50;
 /** Percentage (0-100) */
 const split = ref<number>(loadSplit());
@@ -131,7 +131,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .split-container {
-  --split: 65%;
+  --split: 50%;
   display: flex;
   width: 100%;
   flex: 1 1 0%;
