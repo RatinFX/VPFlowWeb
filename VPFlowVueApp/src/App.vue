@@ -45,13 +45,13 @@ onMounted(() => {
     </header>
 
     <main class="flex-1 flex min-h-0">
-      <ShortcutsInfo />
-
       <SplitContainer>
         <template #primary>
           <div class="flex flex-col h-full gap-2">
-            <div class="flex flex-1 justify-center">
+            <div class="relative flex-1 justify-center">
               <CanvasArea ref="canvasAreaRef" />
+
+              <ShortcutsInfo />
             </div>
 
             <div class="flex">
