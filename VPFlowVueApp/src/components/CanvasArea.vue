@@ -710,11 +710,7 @@ function handleWheel(e: WheelEvent) {
   const newScale = transform.value.scale * scaleChange;
 
   // Limit zoom range
-  if (
-    newScale < 0.1
-    // || newScale > 10
-  )
-    return;
+  if (newScale < 0.1) return;
 
   isDefaultView.value = false; // User is manually adjusting view
 
@@ -730,6 +726,9 @@ function handleWheel(e: WheelEvent) {
     x: mouseX - (mouseX - transform.value.x) * scaleChange,
     y: mouseY - (mouseY - transform.value.y) * scaleChange,
   };
+
+  // Log the current scale
+  log(`Zoom ${delta > 0 ? "in" : "out"} to scale: ${newScale.toFixed(2)}`);
 }
 
 function resetView() {
