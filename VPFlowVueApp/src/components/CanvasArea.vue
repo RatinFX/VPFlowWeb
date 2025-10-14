@@ -19,11 +19,13 @@ const {
 } = useCurvePoints();
 
 // Constants
-const POINT_RADIUS = 4;
-const POINT_COLOR = "#fdbf28";
-const HANDLE_RADIUS = 4;
+const POINT_RADIUS = 5;
+const POINT_COLOR = "#fdbf28"; // yellow
+const POINT_STROKE_COLOR_SELECTED = "var(--primary)";
+const POINT_STROKE_SELECTED = 2;
+const HANDLE_RADIUS = 5;
 const HANDLE_LINE_WIDTH = 2;
-const CURVE_PATH_WIDTH = 2;
+const CURVE_PATH_WIDTH = 3;
 const CURVE_SIZE = 100; // The curve coordinate system (0-100)
 const CANVAS_PADDING = 1000; // Extra space around curve for handles to overshoot
 const CANVAS_SIZE = CURVE_SIZE + CANVAS_PADDING * 2; // Total canvas size
@@ -33,6 +35,7 @@ const scaledSizes = computed(() => {
   const scale = transform.value.scale;
   return {
     pointRadius: POINT_RADIUS / scale,
+    pointStrokeWidth: POINT_STROKE_SELECTED / scale,
     handleRadius: HANDLE_RADIUS / scale,
     handleLineWidth: HANDLE_LINE_WIDTH / scale,
     curvePathWidth: CURVE_PATH_WIDTH / scale,
@@ -1057,7 +1060,7 @@ defineExpose({
                   :r="scaledSizes.handleRadius"
                   stroke="none"
                   :class="[
-                    'fill-blue-500',
+                    'fill-cyan-500',
                     isDraggingHandle ? 'cursor-grabbing' : 'cursor-grab',
                   ]"
                   @mousedown="startHandleDrag($event, point, 'out')"
@@ -1071,7 +1074,7 @@ defineExpose({
                   :r="scaledSizes.handleRadius"
                   stroke="none"
                   :class="[
-                    'fill-green-500',
+                    'fill-emerald-500',
                     isDraggingHandle ? 'cursor-grabbing' : 'cursor-grab',
                   ]"
                   @mousedown="startHandleDrag($event, point, 'in')"
@@ -1086,11 +1089,20 @@ defineExpose({
             :key="point.id"
             :cx="point.x * CURVE_SIZE"
             :cy="point.y * CURVE_SIZE"
-            :r="scaledSizes.pointRadius"
-            stroke="none"
-            :fill="
-              selectedPoint?.id === point.id ? POINT_COLOR : 'var(--primary)'
+            :r="
+              selectedPoint?.id === point.id
+                ? scaledSizes.pointRadius * 1.5
+                : scaledSizes.pointRadius
             "
+            :stroke="
+              selectedPoint?.id === point.id
+                ? POINT_STROKE_COLOR_SELECTED
+                : 'none'
+            "
+            :stroke-width="
+              selectedPoint?.id === point.id ? scaledSizes.pointStrokeWidth : 0
+            "
+            :fill="POINT_COLOR"
             :class="[
               // 'stroke-foreground stroke-2',
               point.id === 'start' || point.id === 'end'
