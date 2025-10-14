@@ -705,6 +705,12 @@ function deleteSelectedPoint() {
 function handleWheel(e: WheelEvent) {
   e.preventDefault();
 
+  // Prevent zooming if dragging is active
+  if (isDragging.value) {
+    log("Ignored zoom event while dragging");
+    return;
+  }
+
   const delta = -e.deltaY;
   const scaleChange = delta > 0 ? 1.1 : 0.9;
   const newScale = transform.value.scale * scaleChange;
