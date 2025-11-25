@@ -279,6 +279,14 @@ namespace VPFlowWebMain.Controllers
         }
 
         /// <summary>
+        /// Public version for external callers
+        /// </summary>
+        public KeyframeBoundary FindKeyframeBoundary(IAnimatableParameter parameter, Timecode cursorPosition)
+        {
+            return FindKeyframeBoundary(parameter, cursorPosition);
+        }
+
+        /// <summary>
         /// Find keyframe boundary using pre-scaled cursor position.
         /// Used for Media Generator and Transition Progress which have non-standard timecode.
         /// </summary>
@@ -336,6 +344,16 @@ namespace VPFlowWebMain.Controllers
                 EndKeyframe = endKeyframe,
                 Parameter = parameter
             };
+        }
+
+        /// <summary>
+        /// Public version for external callers
+        /// </summary>
+        public KeyframeBoundary FindKeyframeBoundaryWithScaling(
+            IAnimatableParameter parameter,
+            Timecode scaledCursorPosition)
+        {
+            return FindKeyframeBoundaryWithScaling(parameter, scaledCursorPosition);
         }
 
         /// <summary>

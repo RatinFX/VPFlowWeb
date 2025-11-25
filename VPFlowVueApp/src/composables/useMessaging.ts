@@ -130,7 +130,7 @@ export function useMessaging() {
   function createSettingsPayload(): SettingsPayload {
     const settings = useSettings();
     return {
-      theme: settings.theme?.value ?? "auto",
+      theme: settings.theme.value ?? "auto",
       displayLogs: settings.displayLogs.value,
       checkForUpdatesOnStart: settings.checkForUpdatesOnStart.value,
       ignoreLongSectionWarning: settings.ignoreLongSectionWarning.value,

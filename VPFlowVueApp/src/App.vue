@@ -12,11 +12,13 @@ import Button from "./components/ui/button/Button.vue";
 import { useCurvePoints } from "./composables/useCurvePoints";
 import { useLogging } from "./composables/useLogging";
 import { useMessaging } from "./composables/useMessaging";
+import { useSettings } from "./composables/useSettings";
 
 // Use composables
 const { points } = useCurvePoints();
-const { sendApply, onReceiveItems } = useMessaging();
+const { sendApply, onReceiveItems, onReceiveSettings } = useMessaging();
 const { log } = useLogging();
+const { loadSettings } = useSettings();
 
 const canvasAreaRef = ref<InstanceType<typeof CanvasArea> | null>(null);
 
@@ -27,6 +29,13 @@ const handleDisplayText = computed(() => {
 const items = ref(["Event", "Track"]);
 
 onMounted(() => {
+  // Receive settings from backend
+  onReceiveSettings((data: string) => {
+    const parsed = JSON.parse(data);
+    log("receiveSettings", parsed);
+    loadSettings(parsed);
+  });
+
   // Receive items data from backend
   onReceiveItems((data: string) => {
     const parsed = JSON.parse(data) as string[];

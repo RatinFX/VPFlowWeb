@@ -57,6 +57,38 @@ export function useSettings() {
     });
   }
 
+  /**
+   * Load settings from backend payload (without triggering a send back)
+   * This is called when receiving settings from the backend
+   */
+  function loadSettings(settings: {
+    theme?: string;
+    displayLogs?: boolean;
+    checkForUpdatesOnStart?: boolean;
+    ignoreLongSectionWarning?: boolean;
+    onlyCreateNecessaryKeyframes?: boolean;
+    selectedMode?: SelectedMode;
+  }) {
+    if (settings.theme !== undefined) {
+      theme.value = settings.theme as any;
+    }
+    if (settings.displayLogs !== undefined) {
+      displayLogs.value = settings.displayLogs;
+    }
+    if (settings.checkForUpdatesOnStart !== undefined) {
+      checkForUpdatesOnStart.value = settings.checkForUpdatesOnStart;
+    }
+    if (settings.ignoreLongSectionWarning !== undefined) {
+      ignoreLongSectionWarning.value = settings.ignoreLongSectionWarning;
+    }
+    if (settings.onlyCreateNecessaryKeyframes !== undefined) {
+      onlyCreateNecessaryKeyframes.value = settings.onlyCreateNecessaryKeyframes;
+    }
+    if (settings.selectedMode !== undefined) {
+      selectedMode.value = settings.selectedMode;
+    }
+  }
+
   return {
     // State
     logs,
@@ -69,5 +101,6 @@ export function useSettings() {
 
     // Actions
     setSetting,
+    loadSettings,
   };
 }

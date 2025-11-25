@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using ScriptPortal.Vegas;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -190,6 +191,234 @@ namespace VPFlowWebMain
         internal void HandleApply(object payload)
         {
             var webMessage = Messaging.CreateWebMessage<ApplyPayload>(MessageType.Apply, payload);
+
+            if (webMessage?.Payload?.points == null || webMessage.Payload.points.Count < 2)
+            {
+                Logging.Error("Apply failed: No curve points received");
+                return;
+            }
+
+            Run(() =>
+            {
+                try
+                {
+                    Logging.Log($"Applying curve with {webMessage.Payload.points.Count} points");
+
+                    var animationController = new AnimationController(_vegas);
+                    var selectedMode = SettingsController.Instance.SelectedMode();
+
+                    KeyframeBoundary boundary = null;
+                    Timecode cursorPosition = _vegas.Transport.CursorPosition;
+
+                    if (selectedMode == SelectedMode.Event)
+                    {
+                        // Event mode - iterate through all tracks to find selected events
+                        var selectedEvents = new List<TrackEvent>();
+                        foreach (Track track in _vegas.Project.Tracks)
+                        {
+                            foreach (TrackEvent trackEvent in track.Events)
+                            {
+                                if (trackEvent.Selected)
+                                {
+                                    selectedEvents.Add(trackEvent);
+                                }
+                            }
+                        }
+
+                        if (selectedEvents.Count == 0)
+                        {
+                            Logging.Error("No event selected");
+                            return;
+                        }
+
+                        if (selectedEvents.Count > 1)
+                        {
+                            Logging.Warn($"Multiple events selected ({selectedEvents.Count}), using first one");
+                        }
+
+                        var videoEvent = selectedEvents[0] as VideoEvent;
+                        if (videoEvent == null)
+                        {
+                            Logging.Error("Selected event is not a video event");
+                            return;
+                        }
+
+                        // Adjust cursor to be relative to event start
+                        var adjustedCursor = cursorPosition - videoEvent.Start;
+
+                        // Try to find animated parameter at cursor
+                        // Priority: Media Generator > Transitions > Pan/Crop > Effects
+
+                        // Check Media Generator
+                        if (MediaGeneratorParameter.IsMediaGenerator(videoEvent))
+                        {
+                            var mediaGenParam = new MediaGeneratorParameter(videoEvent, animationController.FrameRate);
+                            var scaledCursor = mediaGenParam.ScaleCursorForLookup(adjustedCursor);
+                            boundary = animationController.FindKeyframeBoundaryWithScaling(mediaGenParam, scaledCursor);
+                            
+                            if (boundary != null)
+                            {
+                                Logging.Log("Found Media Generator animation at cursor");
+                            }
+                        }
+
+                        // Check FadeIn Transition
+                        if (boundary == null && videoEvent.FadeIn?.Transition != null && 
+                            adjustedCursor >= Timecode.FromFrames(0) && adjustedCursor <= videoEvent.FadeIn.Length)
+                        {
+                            boundary = animationController.FindFadeInTransitionBoundary(videoEvent, adjustedCursor);
+                            if (boundary != null)
+                            {
+                                Logging.Log("Found FadeIn Transition animation at cursor");
+                            }
+                        }
+
+                        // Check FadeOut Transition
+                        if (boundary == null && videoEvent.FadeOut?.Transition != null)
+                        {
+                            var fadeOutStart = videoEvent.Length - videoEvent.FadeOut.Length;
+                            if (adjustedCursor >= fadeOutStart && adjustedCursor <= videoEvent.Length)
+                            {
+                                var cursorInFade = adjustedCursor - fadeOutStart;
+                                boundary = animationController.FindFadeOutTransitionBoundary(videoEvent, cursorInFade);
+                                if (boundary != null)
+                                {
+                                    Logging.Log("Found FadeOut Transition animation at cursor");
+                                }
+                            }
+                        }
+
+                        // Check Pan/Crop (VideoMotion)
+                        if (boundary == null)
+                        {
+                            boundary = animationController.FindVideoMotionBoundary(videoEvent, adjustedCursor);
+                            if (boundary != null)
+                            {
+                                Logging.Log("Found Pan/Crop animation at cursor");
+                            }
+                        }
+
+                        // Check Effects
+                        if (boundary == null)
+                        {
+                            var (effect, effectBoundary) = animationController.FindActiveEffect(videoEvent, adjustedCursor);
+                            if (effectBoundary != null)
+                            {
+                                boundary = effectBoundary;
+                                Logging.Log($"Found Effect animation at cursor: {effect?.Description}");
+                            }
+                        }
+                    }
+                    else // Track mode
+                    {
+                        // Track mode - iterate through all tracks to find selected ones
+                        var selectedTracks = new List<Track>();
+                        foreach (Track track in _vegas.Project.Tracks)
+                        {
+                            if (track.Selected)
+                            {
+                                selectedTracks.Add(track);
+                            }
+                        }
+
+                        if (selectedTracks.Count == 0)
+                        {
+                            Logging.Error("No track selected");
+                            return;
+                        }
+
+                        if (selectedTracks.Count > 1)
+                        {
+                            Logging.Warn($"Multiple tracks selected ({selectedTracks.Count}), using first one");
+                        }
+
+                        var videoTrack = selectedTracks[0] as VideoTrack;
+                        if (videoTrack == null)
+                        {
+                            Logging.Error("Selected track is not a video track");
+                            return;
+                        }
+
+                        // Try to find animated parameter at cursor
+                        // Priority: Parent Track Motion > Track Motion > Envelopes > Track Effects
+
+                        // Check Parent Track features (if compositing parent)
+                        boundary = animationController.FindParentTrackMotionBoundary(videoTrack, cursorPosition);
+                        if (boundary != null)
+                        {
+                            Logging.Log("Found Parent Track animation at cursor");
+                        }
+
+                        // Check Track Motion
+                        if (boundary == null)
+                        {
+                            boundary = animationController.FindTrackMotionBoundary(videoTrack, cursorPosition);
+                            if (boundary != null)
+                            {
+                                Logging.Log("Found Track Motion animation at cursor");
+                            }
+                        }
+
+                        // Check Envelopes
+                        if (boundary == null)
+                        {
+                            foreach (Envelope env in videoTrack.Envelopes)
+                            {
+                                if (env.Points.Count < 2)
+                                    continue;
+
+                                boundary = animationController.FindEnvelopeBoundary(env, cursorPosition);
+                                if (boundary != null)
+                                {
+                                    Logging.Log($"Found Envelope animation at cursor: {env.Type}");
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Check Track Effects
+                        if (boundary == null)
+                        {
+                            foreach (Effect effect in videoTrack.Effects)
+                            {
+                                var effectParam = new EffectKeyframeParameter(effect);
+                                if (effectParam.GetKeyframes().Count() < 2)
+                                    continue;
+
+                                boundary = animationController.FindKeyframeBoundary(effectParam, cursorPosition);
+                                if (boundary != null)
+                                {
+                                    Logging.Log($"Found Track Effect animation at cursor: {effect.Description}");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (boundary == null)
+                    {
+                        Logging.Error("No animated parameter found at cursor position");
+                        return;
+                    }
+
+                    // Convert PayloadPoints to Points
+                    var curvePoints = webMessage.Payload.points
+                        .Select(p => new Point { x = p.x, y = p.y })
+                        .ToList();
+
+                    // Apply the bezier curve
+                    using (var undo = new UndoBlock("VPFlow Apply Curve"))
+                    {
+                        animationController.ApplyBezierCurve(boundary, curvePoints);
+                    }
+
+                    Logging.Log($"Successfully applied curve: {boundary.Parameter.Name} ({boundary.Parameter.Type})");
+                }
+                catch (Exception ex)
+                {
+                    Logging.Error($"Apply failed: {ex.Message}");
+                }
+            });
         }
 
         internal void HandleSettingsChanged(object payload)
