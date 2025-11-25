@@ -53,8 +53,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\Settings.cs" />
+    <Compile Include="Controllers\AnimationController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Models\BasePayload.cs" />
+    <Compile Include="Models\IAnimatableParameter.cs" />
+    <Compile Include="Models\KeyframeBoundary.cs" />
+    <Compile Include="Models\ParameterWrappers\EffectKeyframeParameter.cs" />
+    <Compile Include="Models\ParameterWrappers\EnvelopeParameter.cs" />
+    <Compile Include="Models\ParameterWrappers\OFXParameterWrapper.cs" />
+    <Compile Include="Models\ParameterWrappers\TrackMotionKeyframeParameter.cs" />
+    <Compile Include="Models\ParameterWrappers\VideoMotionParameter.cs" />
     <Compile Include="Lib\Logging.cs" />
     <Compile Include="Lib\Messaging.cs" />
     <Compile Include="Models\WebMessage.cs" />

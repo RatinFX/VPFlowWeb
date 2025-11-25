@@ -6,19 +6,19 @@ namespace VPFlowWebMain.Models
 
     internal class ApplyPayload : BasePayload
     {
-        public List<Point> points { get; set; }
+        public List<PayloadPoint> points { get; set; }
     }
 
-    public class Point
+    public class PayloadPoint
     {
         public string id { get; set; }
         public float x { get; set; }
         public float y { get; set; }
-        public Vector2 handleOut { get; set; }
-        public Vector2 handleIn { get; set; }
+        public Point handleOut { get; set; }
+        public Point handleIn { get; set; }
     }
 
-    public class Vector2
+    public class Point
     {
         public float x { get; set; }
         public float y { get; set; }
