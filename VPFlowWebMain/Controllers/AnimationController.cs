@@ -28,7 +28,10 @@ namespace VPFlowWebMain.Controllers
         /// <summary>
         /// Gets the project frame rate for timecode calculations
         /// </summary>
-        public double FrameRate => _vegas?.Project?.Video?.FrameRate ?? 30.0;
+        public double FrameRate
+        {
+            get { return _vegas?.Project?.Video?.FrameRate ?? 30.0; }
+        }
 
         /// <summary>
         /// Finds the first effect with keyframes surrounding the cursor position
@@ -37,7 +40,8 @@ namespace VPFlowWebMain.Controllers
             TrackEvent selectedEvent,
             Timecode adjustedCursorPosition)
         {
-            if (!(selectedEvent is VideoEvent videoEvent))
+            var videoEvent = selectedEvent as VideoEvent;
+            if (videoEvent == null)
             {
                 return (null, null);
             }
@@ -47,7 +51,7 @@ namespace VPFlowWebMain.Controllers
             {
                 var mediaGenParam = new MediaGeneratorParameter(videoEvent, FrameRate);
                 var scaledCursor = mediaGenParam.ScaleCursorForLookup(adjustedCursorPosition);
-                var boundary = FindKeyframeBoundaryWithScaling(mediaGenParam, scaledCursor);
+                var boundary = FindKeyframeBoundaryWithScalingInternal(mediaGenParam, scaledCursor);
                 if (boundary != null)
                 {
                     var generator = videoEvent.ActiveTake?.Media?.Generator;
@@ -58,7 +62,7 @@ namespace VPFlowWebMain.Controllers
             foreach (Effect effect in videoEvent.Effects)
             {
                 // Check standard Effect keyframes
-                var boundary = FindKeyframeBoundary(
+                var boundary = FindKeyframeBoundaryInternal(
                     new EffectKeyframeParameter(effect),
                     adjustedCursorPosition);
 
@@ -75,7 +79,7 @@ namespace VPFlowWebMain.Controllers
                     if (ofxParam == null)
                         continue;
 
-                    boundary = FindKeyframeBoundary(ofxParam, adjustedCursorPosition);
+                    boundary = FindKeyframeBoundaryInternal(ofxParam, adjustedCursorPosition);
                     if (boundary != null)
                         return (effect, boundary);
                 }
@@ -95,7 +99,7 @@ namespace VPFlowWebMain.Controllers
                 return null;
 
             var param = new VideoMotionParameter(videoEvent.VideoMotion);
-            return FindKeyframeBoundary(param, adjustedCursorPosition);
+            return FindKeyframeBoundaryInternal(param, adjustedCursorPosition);
         }
 
         /// <summary>
@@ -105,12 +109,13 @@ namespace VPFlowWebMain.Controllers
             VideoTrack track,
             Timecode adjustedCursorPosition)
         {
-            if (track?.TrackMotion == null) return null;
+            if (track?.TrackMotion == null)
+                return null;
 
             // Check motion keyframes
             var motionParam = new TrackMotionKeyframeParameter(
-                track.TrackMotion.MotionKeyframes, TrackMotionType.Motion);
-            var boundary = FindKeyframeBoundary(motionParam, adjustedCursorPosition);
+                track.TrackMotion.MotionKeyframes, MotionKeyframeType.Motion, track.TrackMotion);
+            var boundary = FindKeyframeBoundaryInternal(motionParam, adjustedCursorPosition);
             if (boundary != null)
                 return boundary;
 
@@ -118,8 +123,8 @@ namespace VPFlowWebMain.Controllers
             if (track.TrackMotion.ShadowEnabled)
             {
                 var shadowParam = new TrackMotionKeyframeParameter(
-                    track.TrackMotion.ShadowKeyframes, TrackMotionType.Shadow);
-                boundary = FindKeyframeBoundary(shadowParam, adjustedCursorPosition);
+                    track.TrackMotion.ShadowKeyframes, MotionKeyframeType.Shadow, track.TrackMotion);
+                boundary = FindKeyframeBoundaryInternal(shadowParam, adjustedCursorPosition);
                 if (boundary != null)
                     return boundary;
             }
@@ -128,8 +133,8 @@ namespace VPFlowWebMain.Controllers
             if (track.TrackMotion.GlowEnabled)
             {
                 var glowParam = new TrackMotionKeyframeParameter(
-                    track.TrackMotion.GlowKeyframes, TrackMotionType.Glow);
-                boundary = FindKeyframeBoundary(glowParam, adjustedCursorPosition);
+                    track.TrackMotion.GlowKeyframes, MotionKeyframeType.Glow, track.TrackMotion);
+                boundary = FindKeyframeBoundaryInternal(glowParam, adjustedCursorPosition);
                 if (boundary != null)
                     return boundary;
             }
@@ -151,8 +156,8 @@ namespace VPFlowWebMain.Controllers
             // Check parent motion keyframes
             if (ParentTrackMotionParameter.HasAnimatedParentMotion(track))
             {
-                var param = new ParentTrackMotionParameter(track, TrackMotionType.Motion);
-                var boundary = FindKeyframeBoundary(param, adjustedCursorPosition);
+                var param = new ParentTrackMotionParameter(track, MotionKeyframeType.Motion);
+                var boundary = FindKeyframeBoundaryInternal(param, adjustedCursorPosition);
                 if (boundary != null)
                     return boundary;
             }
@@ -160,8 +165,8 @@ namespace VPFlowWebMain.Controllers
             // Check parent shadow keyframes
             if (ParentTrackMotionParameter.HasAnimatedParentShadow(track))
             {
-                var param = new ParentTrackMotionParameter(track, TrackMotionType.Shadow);
-                var boundary = FindKeyframeBoundary(param, adjustedCursorPosition);
+                var param = new ParentTrackMotionParameter(track, MotionKeyframeType.Shadow);
+                var boundary = FindKeyframeBoundaryInternal(param, adjustedCursorPosition);
                 if (boundary != null)
                     return boundary;
             }
@@ -169,8 +174,8 @@ namespace VPFlowWebMain.Controllers
             // Check parent glow keyframes
             if (ParentTrackMotionParameter.HasAnimatedParentGlow(track))
             {
-                var param = new ParentTrackMotionParameter(track, TrackMotionType.Glow);
-                var boundary = FindKeyframeBoundary(param, adjustedCursorPosition);
+                var param = new ParentTrackMotionParameter(track, MotionKeyframeType.Glow);
+                var boundary = FindKeyframeBoundaryInternal(param, adjustedCursorPosition);
                 if (boundary != null)
                     return boundary;
             }
@@ -180,7 +185,7 @@ namespace VPFlowWebMain.Controllers
             if (compositeModeEffect != null)
             {
                 var param = new EffectKeyframeParameter(compositeModeEffect);
-                var boundary = FindKeyframeBoundary(param, adjustedCursorPosition);
+                var boundary = FindKeyframeBoundaryInternal(param, adjustedCursorPosition);
                 if (boundary != null)
                     return boundary;
             }
@@ -199,7 +204,7 @@ namespace VPFlowWebMain.Controllers
                 return null;
 
             var param = new EnvelopeParameter(envelope);
-            return FindKeyframeBoundary(param, adjustedCursorPosition);
+            return FindKeyframeBoundaryInternal(param, adjustedCursorPosition);
         }
 
         /// <summary>
@@ -216,7 +221,7 @@ namespace VPFlowWebMain.Controllers
 
             // Scale cursor for envelope lookup
             var scaledCursor = param.ScaleCursorForLookup(cursorPositionRelativeToFade);
-            return FindKeyframeBoundaryWithScaling(param, scaledCursor);
+            return FindKeyframeBoundaryWithScalingInternal(param, scaledCursor);
         }
 
         /// <summary>
@@ -233,13 +238,23 @@ namespace VPFlowWebMain.Controllers
 
             // Scale cursor for envelope lookup
             var scaledCursor = param.ScaleCursorForLookup(cursorPositionRelativeToFade);
-            return FindKeyframeBoundaryWithScaling(param, scaledCursor);
+            return FindKeyframeBoundaryWithScalingInternal(param, scaledCursor);
         }
 
         /// <summary>
         /// Generic method to find start/end keyframe boundary
         /// </summary>
-        private KeyframeBoundary FindKeyframeBoundary(
+        public KeyframeBoundary FindKeyframeBoundary(
+            IAnimatableParameter parameter,
+            Timecode cursorPosition)
+        {
+            return FindKeyframeBoundaryInternal(parameter, cursorPosition);
+        }
+
+        /// <summary>
+        /// Internal implementation of FindKeyframeBoundary
+        /// </summary>
+        private KeyframeBoundary FindKeyframeBoundaryInternal(
             IAnimatableParameter parameter,
             Timecode cursorPosition)
         {
@@ -279,18 +294,20 @@ namespace VPFlowWebMain.Controllers
         }
 
         /// <summary>
-        /// Public version for external callers
-        /// </summary>
-        public KeyframeBoundary FindKeyframeBoundary(IAnimatableParameter parameter, Timecode cursorPosition)
-        {
-            return FindKeyframeBoundary(parameter, cursorPosition);
-        }
-
-        /// <summary>
         /// Find keyframe boundary using pre-scaled cursor position.
         /// Used for Media Generator and Transition Progress which have non-standard timecode.
         /// </summary>
-        private KeyframeBoundary FindKeyframeBoundaryWithScaling(
+        public KeyframeBoundary FindKeyframeBoundaryWithScaling(
+            IAnimatableParameter parameter,
+            Timecode scaledCursorPosition)
+        {
+            return FindKeyframeBoundaryWithScalingInternal(parameter, scaledCursorPosition);
+        }
+
+        /// <summary>
+        /// Internal implementation for scaled keyframe boundary finding
+        /// </summary>
+        private KeyframeBoundary FindKeyframeBoundaryWithScalingInternal(
             IAnimatableParameter parameter,
             Timecode scaledCursorPosition)
         {
@@ -304,14 +321,18 @@ namespace VPFlowWebMain.Controllers
             for (int i = 0; i < keyframes.Count - 1; i++)
             {
                 // For scaled parameters, we need raw time for comparison
-                Timecode currentTime, nextTime;
+                Timecode currentTime;
+                Timecode nextTime;
 
-                if (parameter is MediaGeneratorParameter mgp)
+                var mgp = parameter as MediaGeneratorParameter;
+                var tpp = parameter as TransitionProgressParameter;
+
+                if (mgp != null)
                 {
                     currentTime = mgp.GetRawKeyframeTime(keyframes[i]);
                     nextTime = mgp.GetRawKeyframeTime(keyframes[i + 1]);
                 }
-                else if (parameter is TransitionProgressParameter tpp)
+                else if (tpp != null)
                 {
                     currentTime = tpp.GetRawKeyframeTime(keyframes[i]);
                     nextTime = tpp.GetRawKeyframeTime(keyframes[i + 1]);
@@ -344,16 +365,6 @@ namespace VPFlowWebMain.Controllers
                 EndKeyframe = endKeyframe,
                 Parameter = parameter
             };
-        }
-
-        /// <summary>
-        /// Public version for external callers
-        /// </summary>
-        public KeyframeBoundary FindKeyframeBoundaryWithScaling(
-            IAnimatableParameter parameter,
-            Timecode scaledCursorPosition)
-        {
-            return FindKeyframeBoundaryWithScaling(parameter, scaledCursorPosition);
         }
 
         /// <summary>
@@ -407,20 +418,26 @@ namespace VPFlowWebMain.Controllers
             if (string.IsNullOrEmpty(param.Label) && string.IsNullOrEmpty(param.Name))
                 return null;
 
-            // Check for supported types and wrap accordingly
-            return param switch
-            {
-                OFXDoubleParameter dp => new OFXParameterWrapper<double, OFXDoubleKeyframe>(dp),
-                OFXDouble2DParameter d2p => new OFXParameterWrapper<OFXDouble2D, OFXDouble2DKeyframe>(d2p),
-                OFXDouble3DParameter d3p => new OFXParameterWrapper<OFXDouble3D, OFXDouble3DKeyframe>(d3p),
-                OFXIntegerParameter ip => new OFXParameterWrapper<int, OFXIntegerKeyframe>(ip),
-                OFXInteger2DParameter i2p => new OFXParameterWrapper<OFXInteger2D, OFXInteger2DKeyframe>(i2p),
-                OFXInteger3DParameter i3p => new OFXParameterWrapper<OFXInteger3D, OFXInteger3DKeyframe>(i3p),
-                OFXRGBParameter rgbp => new OFXParameterWrapper<OFXColor, OFXRGBKeyframe>(rgbp),
-                OFXRGBAParameter rgbap => new OFXParameterWrapper<OFXColor, OFXRGBAKeyframe>(rgbap),
-                // OFXCustomParameter is not interpolatable in the standard way
-                _ => null
-            };
+            // Check for supported types and wrap accordingly (C# 7.3 compatible)
+            if (param is OFXDoubleParameter dp)
+                return new OFXParameterWrapper<double, OFXDoubleKeyframe>(dp);
+            if (param is OFXDouble2DParameter d2p)
+                return new OFXParameterWrapper<OFXDouble2D, OFXDouble2DKeyframe>(d2p);
+            if (param is OFXDouble3DParameter d3p)
+                return new OFXParameterWrapper<OFXDouble3D, OFXDouble3DKeyframe>(d3p);
+            if (param is OFXIntegerParameter ip)
+                return new OFXParameterWrapper<int, OFXIntegerKeyframe>(ip);
+            if (param is OFXInteger2DParameter i2p)
+                return new OFXParameterWrapper<OFXInteger2D, OFXInteger2DKeyframe>(i2p);
+            if (param is OFXInteger3DParameter i3p)
+                return new OFXParameterWrapper<OFXInteger3D, OFXInteger3DKeyframe>(i3p);
+            if (param is OFXRGBParameter rgbp)
+                return new OFXParameterWrapper<OFXColor, OFXRGBKeyframe>(rgbp);
+            if (param is OFXRGBAParameter rgbap)
+                return new OFXParameterWrapper<OFXColor, OFXRGBAKeyframe>(rgbap);
+
+            // OFXCustomParameter is not interpolatable in the standard way
+            return null;
         }
     }
 }

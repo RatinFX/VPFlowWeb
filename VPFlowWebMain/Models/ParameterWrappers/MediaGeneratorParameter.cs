@@ -100,7 +100,7 @@ namespace VPFlowWebMain.Models
 
             // Scale up to Media Generator time
             var scaledTime = KeyframeCalculations.ScaleUpCursorForMediaGenerator(time, _frameRate);
-            var kf = new Keyframe(generator, scaledTime);
+            var kf = new Keyframe(scaledTime);
             generator.Keyframes.Add(kf);
         }
 

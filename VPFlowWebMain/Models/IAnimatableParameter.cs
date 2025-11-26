@@ -13,6 +13,6 @@ namespace VPFlowWebMain.Models
         IEnumerable<object> GetKeyframes();
         Timecode GetKeyframeTime(object keyframe);
         void AddKeyframe(Timecode time, object value);
-        object InterpolateValue(object startKeyframe, object endKeyframe, double t);
+        object InterpolateValue(object startKf, object endKf, double t);
     }
 }

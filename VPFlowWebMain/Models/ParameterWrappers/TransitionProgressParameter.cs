@@ -46,7 +46,7 @@ namespace VPFlowWebMain.Models
             if (videoEvent?.FadeIn?.Transition == null)
                 return null;
 
-            var envelope = GetTransitionProgressEnvelope(videoEvent.FadeIn.Transition);
+            var envelope = GetTransitionProgressEnvelope(videoEvent.FadeIn);
             if (envelope == null)
                 return null;
 
@@ -61,7 +61,7 @@ namespace VPFlowWebMain.Models
             if (videoEvent?.FadeOut?.Transition == null)
                 return null;
 
-            var envelope = GetTransitionProgressEnvelope(videoEvent.FadeOut.Transition);
+            var envelope = GetTransitionProgressEnvelope(videoEvent.FadeOut);
             if (envelope == null)
                 return null;
 
@@ -69,15 +69,16 @@ namespace VPFlowWebMain.Models
         }
 
         /// <summary>
-        /// Gets the TransitionProgress envelope from a Transition effect
+        /// Gets the TransitionProgress envelope from a Fade object.
+        /// Note: Envelopes are on the Fade object, not the Effect/Transition.
         /// </summary>
-        private static Envelope GetTransitionProgressEnvelope(Effect transition)
+        private static Envelope GetTransitionProgressEnvelope(Fade fade)
         {
-            if (transition == null)
+            if (fade == null)
                 return null;
 
             // Look for the transition progress envelope
-            foreach (Envelope env in transition.Envelopes)
+            foreach (Envelope env in fade.Envelopes)
             {
                 if (env.Type == EnvelopeType.TransitionProgress)
                     return env;

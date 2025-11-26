@@ -8,9 +8,10 @@ using VPFlowWebMain.Lib;
 namespace VPFlowWebMain.Models
 {
     /// <summary>
-    /// Enumeration for the type of track motion parameter
+    /// Enumeration for the type of track motion parameter.
+    /// Named differently from ScriptPortal.Vegas.TrackMotionType to avoid conflicts.
     /// </summary>
-    public enum TrackMotionType
+    public enum MotionKeyframeType
     {
         Motion,
         Shadow,
@@ -21,13 +22,15 @@ namespace VPFlowWebMain.Models
     /// Wrapper for Parent Track motion parameters.
     /// Parent track properties require IsCompositingParent to be true
     /// and need UndoBlock even for read access.
+    /// NOTE: This is for READ operations only. Adding keyframes requires
+    /// the TrackMotion object and its Insert*Keyframe methods.
     /// </summary>
     internal class ParentTrackMotionParameter : IAnimatableParameter
     {
         private readonly VideoTrack _track;
-        private readonly TrackMotionType _motionType;
+        private readonly MotionKeyframeType _motionType;
 
-        public ParentTrackMotionParameter(VideoTrack track, TrackMotionType motionType)
+        public ParentTrackMotionParameter(VideoTrack track, MotionKeyframeType motionType)
         {
             _track = track;
             _motionType = motionType;
@@ -95,205 +98,88 @@ namespace VPFlowWebMain.Models
             return effect;
         }
 
-        public string Name => $"Parent Track {_motionType}";
-        public string Type => $"ParentTrack{_motionType}";
+        public string Name
+        {
+            get { return "Parent Track " + _motionType.ToString(); }
+        }
+
+        public string Type
+        {
+            get { return "ParentTrack" + _motionType.ToString(); }
+        }
 
         public IEnumerable<object> GetKeyframes()
         {
             if (_track?.ParentTrackMotion == null)
                 return Enumerable.Empty<object>();
 
-            IList keyframes = _motionType switch
-            {
-                TrackMotionType.Motion => _track.ParentTrackMotion.MotionKeyframes,
-                TrackMotionType.Shadow => _track.ParentTrackMotion.ShadowKeyframes,
-                TrackMotionType.Glow => _track.ParentTrackMotion.GlowKeyframes,
-                _ => null
-            };
+            IList keyframes = null;
+            if (_motionType == MotionKeyframeType.Motion)
+                keyframes = _track.ParentTrackMotion.MotionKeyframes;
+            else if (_motionType == MotionKeyframeType.Shadow)
+                keyframes = _track.ParentTrackMotion.ShadowKeyframes;
+            else if (_motionType == MotionKeyframeType.Glow)
+                keyframes = _track.ParentTrackMotion.GlowKeyframes;
 
-            return keyframes?.Cast<object>() ?? Enumerable.Empty<object>();
+            if (keyframes == null)
+                return Enumerable.Empty<object>();
+
+            return keyframes.Cast<object>();
         }
 
         public Timecode GetKeyframeTime(object keyframe)
         {
-            // TrackMotionKeyframe has Position property
-            var positionProp = keyframe.GetType().GetProperty("Position");
-            return (Timecode)positionProp?.GetValue(keyframe);
+            // All track keyframe types inherit from BaseTrackMotionKeyframe which has Position
+            if (keyframe is TrackMotionKeyframe motion)
+                return motion.Position;
+            if (keyframe is TrackShadowKeyframe shadow)
+                return shadow.Position;
+            if (keyframe is TrackGlowKeyframe glow)
+                return glow.Position;
+
+            // Fallback using reflection
+            var positionProp = keyframe?.GetType().GetProperty("Position");
+            return positionProp?.GetValue(keyframe) as Timecode ?? Timecode.FromFrames(0);
         }
 
         public void AddKeyframe(Timecode time, object value)
         {
+            // Adding parent track motion keyframes requires the TrackMotion object
+            // and its Insert*Keyframe methods. This is handled externally.
             if (_track?.ParentTrackMotion == null)
                 return;
 
-            // Get the appropriate keyframe collection
-            IList keyframes = _motionType switch
+            var trackMotion = _track.ParentTrackMotion;
+
+            if (_motionType == MotionKeyframeType.Motion)
             {
-                TrackMotionType.Motion => _track.ParentTrackMotion.MotionKeyframes,
-                TrackMotionType.Shadow => _track.ParentTrackMotion.ShadowKeyframes,
-                TrackMotionType.Glow => _track.ParentTrackMotion.GlowKeyframes,
-                _ => null
-            };
-
-            if (keyframes == null)
-                return;
-
-            // Create appropriate keyframe type using reflection
-            var kfType = keyframes.GetType().GetGenericArguments()[0];
-            var constructor = kfType.GetConstructor(new[] { typeof(Timecode) });
-            if (constructor == null)
-                return;
-
-            var kf = constructor.Invoke(new object[] { time });
-
-            // Copy properties from value if provided
-            if (value != null)
-            {
-                CopyKeyframeProperties(value, kf);
+                var kf = trackMotion.InsertMotionKeyframe(time);
+                kf.Type = VideoKeyframeType.Linear;
             }
-
-            keyframes.Add(kf);
+            else if (_motionType == MotionKeyframeType.Shadow)
+            {
+                var kf = trackMotion.InsertShadowKeyframe(time);
+                kf.Type = VideoKeyframeType.Linear;
+            }
+            else if (_motionType == MotionKeyframeType.Glow)
+            {
+                var kf = trackMotion.InsertGlowKeyframe(time);
+                kf.Type = VideoKeyframeType.Linear;
+            }
         }
 
         public object InterpolateValue(object startKf, object endKf, double t)
         {
-            return _motionType switch
-            {
-                TrackMotionType.Motion => InterpolateMotionKeyframe(startKf, endKf, t),
-                TrackMotionType.Shadow => InterpolateShadowKeyframe(startKf, endKf, t),
-                TrackMotionType.Glow => InterpolateGlowKeyframe(startKf, endKf, t),
-                _ => null
-            };
-        }
-
-        /// <summary>
-        /// Interpolates TrackMotionKeyframe properties
-        /// </summary>
-        private object InterpolateMotionKeyframe(object startKf, object endKf, double t)
-        {
-            var start = (TrackMotionKeyframe)startKf;
-            var end = (TrackMotionKeyframe)endKf;
-
-            // Create a dictionary of interpolated values
-            return new TrackMotionValues
-            {
-                PositionX = KeyframeCalculations.Lerp(start.PositionX, end.PositionX, t),
-                PositionY = KeyframeCalculations.Lerp(start.PositionY, end.PositionY, t),
-                Width = KeyframeCalculations.Lerp(start.Width, end.Width, t),
-                Height = KeyframeCalculations.Lerp(start.Height, end.Height, t),
-                RotationX = KeyframeCalculations.Lerp(start.RotationX, end.RotationX, t),
-                RotationY = KeyframeCalculations.Lerp(start.RotationY, end.RotationY, t),
-                RotationZ = KeyframeCalculations.Lerp(start.RotationZ, end.RotationZ, t),
-                OrientationX = KeyframeCalculations.Lerp(start.OrientationX, end.OrientationX, t),
-                OrientationY = KeyframeCalculations.Lerp(start.OrientationY, end.OrientationY, t),
-                OrientationZ = KeyframeCalculations.Lerp(start.OrientationZ, end.OrientationZ, t),
-                RotationOffsetX = KeyframeCalculations.Lerp(start.RotationOffsetX, end.RotationOffsetX, t),
-                RotationOffsetY = KeyframeCalculations.Lerp(start.RotationOffsetY, end.RotationOffsetY, t),
-                RotationOffsetZ = KeyframeCalculations.Lerp(start.RotationOffsetZ, end.RotationOffsetZ, t),
-                ScaleX = KeyframeCalculations.Lerp(start.ScaleX, end.ScaleX, t),
-                ScaleY = KeyframeCalculations.Lerp(start.ScaleY, end.ScaleY, t),
-                PositionZ = KeyframeCalculations.Lerp(start.PositionZ, end.PositionZ, t)
-            };
-        }
-
-        /// <summary>
-        /// Interpolates TrackShadowKeyframe properties
-        /// </summary>
-        private object InterpolateShadowKeyframe(object startKf, object endKf, double t)
-        {
-            var start = (TrackShadowKeyframe)startKf;
-            var end = (TrackShadowKeyframe)endKf;
-
-            return new TrackShadowGlowValues
-            {
-                OffsetX = KeyframeCalculations.Lerp(start.OffsetX, end.OffsetX, t),
-                OffsetY = KeyframeCalculations.Lerp(start.OffsetY, end.OffsetY, t),
-                Blur = KeyframeCalculations.Lerp(start.Blur, end.Blur, t),
-                Intensity = KeyframeCalculations.Lerp(start.Intensity, end.Intensity, t),
-                // Color interpolation
-                ColorR = KeyframeCalculations.Lerp(start.Color.R / 255.0, end.Color.R / 255.0, t),
-                ColorG = KeyframeCalculations.Lerp(start.Color.G / 255.0, end.Color.G / 255.0, t),
-                ColorB = KeyframeCalculations.Lerp(start.Color.B / 255.0, end.Color.B / 255.0, t),
-                ColorA = KeyframeCalculations.Lerp(start.Color.A / 255.0, end.Color.A / 255.0, t)
-            };
-        }
-
-        /// <summary>
-        /// Interpolates TrackGlowKeyframe properties
-        /// </summary>
-        private object InterpolateGlowKeyframe(object startKf, object endKf, double t)
-        {
-            var start = (TrackGlowKeyframe)startKf;
-            var end = (TrackGlowKeyframe)endKf;
-
-            return new TrackShadowGlowValues
-            {
-                OffsetX = KeyframeCalculations.Lerp(start.OffsetX, end.OffsetX, t),
-                OffsetY = KeyframeCalculations.Lerp(start.OffsetY, end.OffsetY, t),
-                Blur = KeyframeCalculations.Lerp(start.Blur, end.Blur, t),
-                Intensity = KeyframeCalculations.Lerp(start.Intensity, end.Intensity, t),
-                ColorR = KeyframeCalculations.Lerp(start.Color.R / 255.0, end.Color.R / 255.0, t),
-                ColorG = KeyframeCalculations.Lerp(start.Color.G / 255.0, end.Color.G / 255.0, t),
-                ColorB = KeyframeCalculations.Lerp(start.Color.B / 255.0, end.Color.B / 255.0, t),
-                ColorA = KeyframeCalculations.Lerp(start.Color.A / 255.0, end.Color.A / 255.0, t)
-            };
-        }
-
-        private void CopyKeyframeProperties(object source, object target)
-        {
-            if (source is TrackMotionValues motion && target is TrackMotionKeyframe kf)
-            {
-                kf.PositionX = motion.PositionX;
-                kf.PositionY = motion.PositionY;
-                kf.Width = motion.Width;
-                kf.Height = motion.Height;
-                kf.RotationX = motion.RotationX;
-                kf.RotationY = motion.RotationY;
-                kf.RotationZ = motion.RotationZ;
-                kf.OrientationX = motion.OrientationX;
-                kf.OrientationY = motion.OrientationY;
-                kf.OrientationZ = motion.OrientationZ;
-                kf.RotationOffsetX = motion.RotationOffsetX;
-                kf.RotationOffsetY = motion.RotationOffsetY;
-                kf.RotationOffsetZ = motion.RotationOffsetZ;
-                kf.ScaleX = motion.ScaleX;
-                kf.ScaleY = motion.ScaleY;
-                kf.PositionZ = motion.PositionZ;
-            }
-            else if (source is TrackShadowGlowValues shadowGlow)
-            {
-                if (target is TrackShadowKeyframe shadow)
-                {
-                    shadow.OffsetX = shadowGlow.OffsetX;
-                    shadow.OffsetY = shadowGlow.OffsetY;
-                    shadow.Blur = shadowGlow.Blur;
-                    shadow.Intensity = shadowGlow.Intensity;
-                    shadow.Color = System.Drawing.Color.FromArgb(
-                        (int)(shadowGlow.ColorA * 255),
-                        (int)(shadowGlow.ColorR * 255),
-                        (int)(shadowGlow.ColorG * 255),
-                        (int)(shadowGlow.ColorB * 255)
-                    );
-                }
-                else if (target is TrackGlowKeyframe glow)
-                {
-                    glow.OffsetX = shadowGlow.OffsetX;
-                    glow.OffsetY = shadowGlow.OffsetY;
-                    glow.Blur = shadowGlow.Blur;
-                    glow.Intensity = shadowGlow.Intensity;
-                    glow.Color = System.Drawing.Color.FromArgb(
-                        (int)(shadowGlow.ColorA * 255),
-                        (int)(shadowGlow.ColorR * 255),
-                        (int)(shadowGlow.ColorG * 255),
-                        (int)(shadowGlow.ColorB * 255)
-                    );
-                }
-            }
+            // Track motion keyframes have many properties that are set after insertion
+            // We return null here; the actual value interpolation happens when
+            // applying the curve (using KeyframeCalculations.Lerp on individual properties)
+            return null;
         }
     }
 
     /// <summary>
-    /// Helper class to hold interpolated TrackMotionKeyframe values
+    /// Helper class to hold interpolated TrackMotionKeyframe values.
+    /// Based on BaseTrackMotionKeyframe properties from Vegas API.
     /// </summary>
     public class TrackMotionValues
     {
@@ -302,6 +188,7 @@ namespace VPFlowWebMain.Models
         public double PositionZ { get; set; }
         public double Width { get; set; }
         public double Height { get; set; }
+        public double Depth { get; set; }
         public double RotationX { get; set; }
         public double RotationY { get; set; }
         public double RotationZ { get; set; }
@@ -311,17 +198,15 @@ namespace VPFlowWebMain.Models
         public double RotationOffsetX { get; set; }
         public double RotationOffsetY { get; set; }
         public double RotationOffsetZ { get; set; }
-        public double ScaleX { get; set; }
-        public double ScaleY { get; set; }
     }
 
     /// <summary>
-    /// Helper class to hold interpolated Shadow/Glow keyframe values
+    /// Helper class to hold interpolated Shadow/Glow keyframe values.
+    /// Shadow and Glow keyframes have: Blur, Intensity, Color (VideoColor).
+    /// Position comes from BaseTrackMotionKeyframe (PositionX, PositionY).
     /// </summary>
     public class TrackShadowGlowValues
     {
-        public double OffsetX { get; set; }
-        public double OffsetY { get; set; }
         public double Blur { get; set; }
         public double Intensity { get; set; }
         public double ColorR { get; set; }

@@ -5,7 +5,8 @@ using System.Linq;
 namespace VPFlowWebMain.Models
 {
     /// <summary>
-    /// Wrapper for standard Effect keyframes
+    /// Wrapper for standard Effect keyframes (DXT style effects).
+    /// Effect keyframes have a Preset property but no direct value interpolation.
     /// </summary>
     internal class EffectKeyframeParameter : IAnimatableParameter
     {
@@ -16,32 +17,42 @@ namespace VPFlowWebMain.Models
             _effect = effect;
         }
 
-        public string Name => _effect.Description;
+        public string Name => _effect?.Description ?? "Effect";
         public string Type => "Effect";
 
         public IEnumerable<object> GetKeyframes()
         {
+            if (_effect?.Keyframes == null)
+                return Enumerable.Empty<object>();
+
             return _effect.Keyframes.Cast<object>();
         }
 
         public Timecode GetKeyframeTime(object keyframe)
         {
-            return ((Keyframe)keyframe).Position;
+            var kf = keyframe as Keyframe;
+            return kf?.Position ?? Timecode.FromFrames(0);
         }
 
         public void AddKeyframe(Timecode time, object value)
         {
-            var kf = new Keyframe(_effect, time);
-            // Copy parameter values - this is effect-specific
-            // Would need more sophisticated value handling
+            if (_effect?.Keyframes == null)
+                return;
+
+            // Create a new keyframe at the specified time
+            var kf = new Keyframe(time);
             _effect.Keyframes.Add(kf);
+
+            // Set to linear interpolation
+            kf.Type = VideoKeyframeType.Linear;
         }
 
         public object InterpolateValue(object startKf, object endKf, double t)
         {
-            // Interpolation logic for effect parameters
-            // This is complex as effects have multiple parameters
-            return null; // Placeholder
+            // Effect keyframes use presets, not direct value interpolation
+            // The interpolation happens internally based on keyframe positions
+            // Return null as we only need to create keyframes at positions
+            return null;
         }
     }
 }

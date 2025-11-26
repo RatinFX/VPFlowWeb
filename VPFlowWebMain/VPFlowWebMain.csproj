@@ -60,11 +60,15 @@
     <Compile Include="Models\KeyframeBoundary.cs" />
     <Compile Include="Models\ParameterWrappers\EffectKeyframeParameter.cs" />
     <Compile Include="Models\ParameterWrappers\EnvelopeParameter.cs" />
+    <Compile Include="Models\ParameterWrappers\MediaGeneratorParameter.cs" />
     <Compile Include="Models\ParameterWrappers\OFXParameterWrapper.cs" />
+    <Compile Include="Models\ParameterWrappers\ParentTrackMotionParameter.cs" />
     <Compile Include="Models\ParameterWrappers\TrackMotionKeyframeParameter.cs" />
+    <Compile Include="Models\ParameterWrappers\TransitionProgressParameter.cs" />
     <Compile Include="Models\ParameterWrappers\VideoMotionParameter.cs" />
     <Compile Include="Lib\Logging.cs" />
     <Compile Include="Lib\Messaging.cs" />
+    <Compile Include="Lib\KeyframeCalculations.cs" />
     <Compile Include="Models\WebMessage.cs" />
     <Compile Include="WebView2Extensions.cs" />
     <Compile Include="FlowDockableControl.cs">
